@@ -1,120 +1,54 @@
-# Unity ASTC · BC7 Compute Encoder
+# GpuTextureAtlas
 
-`compute/`는 Unity 6000.7.0b5 베타 프로젝트입니다. 이 문서는 사용법과 지원 범위의 기준 문서입니다. 측정 결과와 복원 이미지는 [벤치마크 보고서](Benchmark/Results/report.html)에 있습니다.
+Unity용 GPU 텍스처 압축과 동적 압축 아틀라스.
 
-현재 Editor는 `.tooling/Unity/6000.7.0b5/Editor/Unity.exe`에 있습니다. Hub에도 이 경로를 등록했습니다. Pipeline은 `0.7.0-exp.1`로 고정합니다. `0.8.0-exp.1`의 CLI 속성 어셈블리 분리와 6.7 SRP의 참조가 맞지 않아 컴파일 오류가 발생합니다. URP는 17.7.0, UGUI는 2.7.0, Input System은 6.7.0입니다. 복구본과 마이그레이션 검산은 `.validation/migration-6000.7.0b5/`에 있습니다.
+라이선스: [MIT](LICENSE)
 
-Windows Player의 스크립팅 백엔드는 기존 Mono입니다. CoreCLR로 전환하지 않았습니다. ASTC와 BC7은 `Fast`·`Balanced`·`HighQuality`를 제공합니다. 기존 품질의 열거형 값과 기본 Fast는 유지합니다. 검산 범위와 실행 방법은 아래 ‘검산’이 기준입니다.
+GPU에 로드한 Texture2D를 ASTC·BC7 아틀라스로 묶습니다. Read/Write를 끈 입력을 사용할 수 있습니다. 목표 형식·색 공간이 같은 입력은 압축 블록을 GPU에서 그대로 복사합니다. 다른 입력은 기기의 샘플링 지원을 확인한 뒤 GPU에서 변환하고 압축합니다.
 
-```powershell
-& 'C:\Program Files\Unity Hub\resources\unity.exe' open .\compute --editor-version 6000.7.0b5 --args '-force-d3d12'
-```
+실행 중 이미지를 추가·제거·재배치할 수 있습니다. 항목의 ID는 좌표가 바뀌어도 유지됩니다. 전용 렌더러는 새 텍스처와 UV를 자동으로 반영하며 9-slice와 SpriteMask를 지원합니다. ASTC·BC7 인코더는 단독으로도 사용할 수 있습니다.
 
-## 현재 범위
+현재 제공 형태는 **Unity 6000.7.0b5 예제 프로젝트**입니다. `compute/`를 Unity Hub에서 엽니다. 사용법과 지원 범위는 이 문서를 기준으로 합니다.
 
-GPU가 한 밉 레벨의 LDR RGBA를 ASTC로 압축합니다. 4×4·5×5·6×6·8×8·10×10·12×12 정사각 블록을 지원합니다. 블록은 16바이트입니다. 가장자리의 남은 픽셀은 마지막 유효 픽셀로 채웁니다.
+## 주요 기능
 
-BC7 GPU 인코더도 제공합니다. BC7은 PC용 4×4 형식이며 8bpp입니다. Android·iOS용 경로는 ASTC입니다. BC7 사용법과 제한은 아래 ‘BC7 GPU 압축’에 있습니다.
-
-`Fast`는 자주 압축하는 용도입니다. `Balanced`는 더 많은 격자와 끝점 보정을 탐색합니다. `HighQuality`는 Balanced 후보에 16개 가중치 모드, 추가 초기 끝점, RGB 채널별 분리 평면을 더합니다. 끝점을 4회 보정하고 격자 노드가 영향을 주는 픽셀로 가중치를 보정합니다. 세 품질은 단일 분할, RGB 직접 끝점·RGB scale 끝점·RGBA 직접 끝점을 사용합니다. 끝점은 ASTC 비트·trit·quint 정수열로 저장합니다. 생성 표의 기준은 Arm astcenc 5.7.0입니다.
-
-ASTC의 HDR, 다중 분할, 밉 생성, 노멀 맵 전용 최적화는 없습니다. 입력은 0~1로 제한됩니다. astcenc의 전체 탐색과 같은 품질을 제공하지 않습니다. 알파 UI는 4×4부터 검토하십시오. 6×6에서는 가는 경계와 독립적인 RGB·알파 변화의 손실이 큽니다. HighQuality는 처리 비용이 큽니다. 매 프레임 사용 여부는 목표 기기의 시간·발열 측정으로 판단합니다.
-
-Windows에서 실제 GPU 인코딩과 공식 디코더 대조를 완료했습니다. **Android·iOS 기기의 시간·발열·연속 압축은 측정하지 않았습니다. 네이티브 텍스처 업로드는 실험 기능입니다.** 모바일 셰이더 코드 생성과 기기 실행은 서로 다른 검증입니다.
-
-## 파일 안내
-
-| 경로 | 역할 |
+| 기능 | 동작 |
 |---|---|
-| `compute/Assets/Astc/Shaders/AstcEncoder.compute` | Fast·Balanced·HighQuality 인코딩 |
-| `compute/Assets/Astc/Shaders/AstcTables.hlsl` | GPU 표 접근 |
-| `compute/Assets/Astc/Runtime/AstcLookup.cs` | 생성된 GPU 표 데이터 |
-| `compute/Assets/Astc/Runtime/AstcEncoder.cs` | 동기·비동기 읽기, 재사용 GPU 버퍼와 행 범위 |
-| `compute/Assets/Astc/Runtime/AstcImage.cs` | 데이터·텍스처·파일 포장 |
-| `compute/Assets/Astc/Runtime/AstcGpuTexture.cs` | 실험용 모바일 GPU 텍스처 갱신 |
-| `compute/Assets/Astc/Runtime/AstcGpuStream.cs` | 매 프레임 사용 예제 |
-| `compute/Assets/Astc/Runtime/AstcGpuRetirement.cs` | GPU 완료 후 자원 해제 |
-| `compute/Assets/Astc/Editor/AstcEncoderWindow.cs` | 내보내기와 기본 예제 씬 |
-| `compute/Assets/Astc/Editor/AstcValidation.cs` | 런타임과 분리된 검산 |
-| `compute/Assets/Astc/Editor/Benchmark/` | 원래 구현·스칼라 디코더·비교 측정 |
-| `compute/Assets/Astc/Editor/Benchmark/AstcPeakMetrics.cs` | RGB·알파·합성의 피크 오차와 최악 블록 계산 |
-| `compute/Assets/Bc7/Shaders/Bc7Encoder.compute` | BC7 세 품질의 진입 커널 |
-| `compute/Assets/Bc7/Shaders/Bc7HighQuality.hlsl` | 2분할 후보 선택·모드 1·3·7 탐색 |
-| `compute/Assets/Bc7/Shaders/Bc7Partitions.hlsl` | Microsoft 참조의 64개 분할·anchor 표 |
-| `compute/Assets/Astc/Editor/Benchmark/HighQualityBenchmark.cs` | 6.7에서 세 품질을 같은 조건으로 비교 |
-| `compute/Assets/Bc7/Runtime/` | BC7 버퍼·동기·비동기 API, 텍스처와 DDS 포장 |
-| `compute/Assets/Bc7/Runtime/Bc7GpuTexture.cs` | Windows D3D12의 GPU 버퍼→BC7 텍스처 갱신 |
-| `compute/Assets/Bc7/Runtime/Bc7GpuStream.cs` | 매 프레임 압축·표시 컴포넌트 |
-| `compute/Assets/Bc7/Editor/` | 내보내기, 별도 디코더, 하드웨어 대조와 비교 측정 |
-| `Tools/Run-Bc7Benchmark.ps1` | 같은 60개 입력의 GPU·Unity BC7 비교 |
-| `Tools/Run-HighQualityBenchmark.ps1` | 세 해상도의 540개 GPU 비교 |
-| `compute/Assets/TextureCompression/Runtime/FrameSlicedGpuJob.cs` | GPU 스냅샷·프레임별 제출·fence 진행 관리 |
-| `compute/Assets/TextureCompression/Runtime/CompressedAtlas.cs` | 압축 Texture2D·블록 바이트의 아틀라스 패킹과 텍스처 생성 |
-| `compute/Assets/TextureCompression/Runtime/CompressedAtlasSource.cs` | GetPixelData로 선택한 밉의 압축 바이트 읽기 |
-| `compute/Assets/TextureCompression/Runtime/CompressedAtlasSampling.hlsl` | 이미지별 UV 변환과 유효 픽셀 경계 제한 |
-| `compute/Assets/TextureCompression/Runtime/BlockAtlasLayout.cs` | CPU·GPU 경로가 공유하는 블록 배치 계산 |
-| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.cs` | Read/Write 없는 직접 복사와 다른 입력만 GPU 변환 |
-| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.Addition.cs` | 기존 위치를 유지하는 추가·확장과 공통 GPU 입력 처리 |
-| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.Editing.cs` | ID 조회·제거·남은 압축 블록의 GPU 재배치 |
-| `compute/Assets/TextureCompression/Runtime/GpuAtlasRenderer.cs` | 고정 ID 렌더러·9-slice·SpriteMask·크기·색상·반전·정렬 |
-| `compute/Assets/Settings/GpuAtlas2D_Renderer.asset` | SpriteMask용 URP 2D Renderer. PC·Mobile 파이프라인의 Renderer 목록 1번 |
-| `compute/Assets/TextureCompression/Runtime/GpuAtlasRenderState.cs` | 아틀라스별 공유 재질·격자 메시·GPU ID 조회 표와 자원 수명 |
-| `compute/Assets/TextureCompression/Resources/GpuAtlasUnlit.shader` | Built-in·URP Forward·Universal2D의 Unlit 렌더 패스 |
-| `compute/Assets/TextureCompression/Resources/GpuAtlasRender.hlsl` | 정수 ID 해시 조회·유효 여부·UV 경계 제한 |
-| `compute/Assets/TextureCompression/Shaders/GpuAtlasConvert.compute` | 선형 RGB로 읽기·목표 블록 크기까지 가장자리 채우기 |
-| `compute/Assets/TextureCompression/Runtime/GpuAtlasBlockCopy.cs` | 부분 블록의 GPU 텍스처→버퍼→텍스처 복사 |
-| `Tools/Verify-GpuAtlas.ps1` | 읽기 불가 혼합 번들·색 공간·GPU 복사·변환·해제 검산 |
-| `compute/Assets/TextureCompression/Editor/GpuAtlasAdditionValidation.cs` | 추가·빈 공간 재사용·확장·실패·작업 중 해제 검산 |
-| `compute/Assets/TextureCompression/Editor/GpuAtlasEditingValidation.cs` | 제거·자리 재사용·재배치·빈 아틀라스·고정 ID 검산 |
-| `compute/Assets/TextureCompression/Editor/GpuAtlasRendererValidation.cs` | 실제 카메라 출력·독립 CPU 참조·플랫폼 셰이더·Player 공통 검산 |
-| `Tools/Verify-GpuAtlasPlayer.ps1` | 별도 Windows Player의 GPU 패킹·재패킹·로더 수명 검산 |
-| `Verification/GpuAtlasPlayerProbe.cs` | 일반 런타임과 분리된 Player 검산 소스 |
-| `Tools/Verify-CompressedAtlas.ps1` | 블록 보존·배치·UV·TextureImporter·AssetBundle 검산 |
-| `Tools/Verify-FrameSliced.ps1` | 분할 바이트·게시·스냅샷·0GC·플랫폼 컴파일 검산 |
-| `Tools/Run-FrameSlicedBenchmark.ps1` | 1024 대표 입력 2개의 일괄·행 묶음 처리량 측정 |
-| `Tools/Render-FrameSlicedBenchmark.mjs` | 프레임 분산 처리량 보고서 생성 |
-| `Tools/Render-HighQualityBenchmark.mjs` | 고퀄 모드의 품질·피크·시간 비교 보고서 |
-| `Tools/Generate-Bc7Tables.ps1` | 고정 Microsoft 소스에서 BC7 분할 표 생성 |
-| `Tools/Verify-Bc7.ps1` | BC7 형식·비동기 출력·셰이더 컴파일 검산 |
-| `Tools/Build-Bc7WindowsPlugin.ps1` | Windows x64 D3D12 복사 플러그인 빌드·설치 |
-| `Tools/Verify-Bc7GpuTexture.ps1` | 직접 복사·연속 프레임·자원 해제 검산 |
-| `Tools/Run-Bc7GpuTextureBenchmark.ps1` | GPU 압축·BC7 복사·샘플링 처리량 측정 |
-| `Tools/Verify-Bc7GpuPlayer.ps1` | 별도 Windows Player의 연속 프레임 검산 |
-| `Verification/Bc7GpuPlayerProbe.cs` | 정상 런타임과 분리된 Player 검산 소스 |
-| `Tools/Update-AstcPeakMetrics.ps1` | 저장된 복원 이미지에서 피크 지표 갱신 |
-| `Native/` | D3D12·Vulkan·Metal 브리지의 기준 소스와 외부 헤더 |
-| `compute/Assets/Astc/Plugins/` | Unity에 설치한 네이티브 산출물 |
-| `Benchmark/Input/manifest.json` | 입력 60개의 크기·알파 통계·SHA-256 |
-| `Benchmark/Sources/sources.json` | 원본 출처·라이선스·SHA-256 |
-| `Benchmark/Results/report.html` | 현재 비교 보고서 |
+| GPU 압축 블록 복사 | 같은 형식·색 공간의 입력을 디코딩·재압축·CPU 픽셀 읽기 없이 패킹합니다. |
+| 입력 변환 | 다른 형식·색 공간의 입력만 목표 ASTC·BC7 형식으로 GPU 변환합니다. |
+| 동적 편집 | Add·Remove·Repack, 빈자리 재사용, 필요 시 아틀라스 확장, 고정 ID를 제공합니다. |
+| 전용 렌더러 | ID로 이미지를 연결합니다. 크기·피벗·반전·색상·정렬·9-slice·SpriteMask를 설정합니다. |
+| GPU 인코더 | ASTC 정사각 블록 6종과 BC7, Fast·Balanced·HighQuality를 제공합니다. |
+| 프레임 분산 압축 | 인코더 작업을 블록 행 단위로 나누고 GPU 완료 뒤 결과를 게시합니다. |
+| Unity 로딩 연동 | Addressables·AssetBundle에서 로드한 Texture2D를 입력합니다. |
+| 별도 검산 도구 | 압축 블록 보존·디코더 대조·실제 카메라 출력·Editor와 Player 실행을 확인합니다. |
 
-## Git 기록 범위
+배치 좌표와 항목 메타데이터는 CPU에서 처리합니다. GPU 경로는 이미지 픽셀을 CPU로 읽지 않습니다. 원본 파일 로딩과 초기 자원 생성에는 CPU 작업이 있습니다. 아틀라스의 Pack·Add·Repack은 GPU 완료를 비동기로 기다리며, 프레임 분산 인코더와 별도 API입니다.
 
-소스·Unity 프로젝트 설정·입력 원본과 라이선스·측정 JSON/CSV·HTML 보고서를 기록합니다. Unity 캐시, 설치 도구, 임시 검산, Native/build와 벤치마크의 생성 PNG·ASTC·BC7 블록은 제외합니다. 파일은 로컬에 유지합니다. 새 체크아웃에서 복원 이미지 패널을 보려면 벤치마크를 다시 실행합니다. 측정 manifest의 SHA-256을 보존하도록 Git의 줄바꿈 자동 변환을 끕니다.
+## 플랫폼과 검증 상태
 
-## CPU 결과와 파일 내보내기
+다음 표는 압축 텍스처의 GPU 출력 브리지와 부분 블록 복사 경로를 기준으로 합니다.
 
-Unity에서 **Tools → ASTC → Encoder**를 엽니다. 원본·블록 크기·Quality를 지정하고 **Encode and export .astc**를 누릅니다. 창의 기본 품질은 Balanced입니다. **Tools → ASTC → Create demo scene**은 기본 비교 씬을 생성합니다. 기존 씬은 변경하지 않습니다.
+| 플랫폼 | 그래픽 API | 목표 압축 형식 | 현재 검증 |
+|---|---|---|---|
+| Windows x64 | Direct3D12 | BC7 | Editor·Windows Player의 GPU 압축·패킹·편집·렌더링 검산 통과 |
+| Android ARM64 | Vulkan | ASTC | 셰이더 코드 생성·네이티브 컴파일·링크 확인. 실기기 실행 미검증 |
+| iOS ARM64 | Metal | ASTC | 셰이더 코드 생성 확인. Xcode 네이티브 빌드·실기기 실행 미검증 |
 
-아래 코드는 Unity 메인 스레드에서 실행합니다. `encoderShader`에는 `AstcEncoder.compute`를 연결합니다.
+Windows에서도 ASTC 블록을 GPU로 인코딩하고 `.astc` 파일로 내보내는 경로를 검산했습니다. ASTC 텍스처의 실시간 샘플링·GPU 출력은 지원 기기에서 사용합니다. 모바일의 실행 시간·발열·연속 압축 안정성은 아직 측정하지 않았습니다.
 
-```csharp
-using UnityCompute.Astc;
-using UnityEngine;
+GPU 아틀라스 출력은 한 밉 레벨입니다. 밉 체인과 여러 아틀라스 페이지를 자동으로 만들지 않습니다. 전용 렌더러의 SpriteMask는 URP 2D Renderer가 필요합니다. 현재 Unity 베타에서는 마스크가 있는 공유 그룹의 자동 인스턴싱을 끕니다. 해당 조건은 아래 사용법에서 설명합니다.
 
-using var encoder = new AstcEncoder(encoderShader);
-AstcImage image = await encoder.EncodeAsync(
-    source, AstcBlockSize.Block4x4,
-    srgb: true, sampledInputIsSrgb: false, quality: AstcQuality.Fast);
-Texture2D compressed = image.CreateTexture();
-// 사용이 끝나면 Destroy(compressed)를 호출합니다.
-```
+## 사용법 안내
 
-작업이 끝날 때까지 원본과 인코더를 유지합니다. 비동기 읽기를 지원하지 않으면 `Encode`를 사용합니다. 동기 API는 GPU를 기다립니다. 두 API는 출력 버퍼와 CPU 배열을 할당합니다. 매 프레임의 기본 경로로 사용하지 마십시오.
+- [처음 사용하는 순서](#처음-사용하는-순서)와 [GPU 아틀라스 생성](#gpu-경로--readwrite-끄기)
+- [이미지 추가](#기존-gpu-아틀라스에-이미지-추가), [제거와 재배치](#제거와-재배치)
+- [전용 렌더러](#고정-id를-사용하는-전용-렌더러), [9-slice](#9-slice), [SpriteMask](#spritemask)
+- [Addressables·AssetBundle 로딩과 해제](#addressables와-assetbundle), [문제 확인](#문제-확인)
+- [ASTC 인코더](#astc-인코더의-지원-범위), [BC7 인코더](#bc7-gpu-압축), [프레임 분산 압축](#여러-프레임에-나누는-압축)
+- [벤치마크 보고서](Benchmark/Results/report.html), [HighQuality 보고서](Benchmark/Results/high-quality/report.html), [검산 절차](#검산)
 
-원본은 Texture2D 또는 생성된 단일 샘플 RenderTexture입니다. Read/Write 옵션은 필요하지 않습니다. MSAA 원본은 먼저 단일 샘플로 해석합니다.
-
-`image.Data`는 헤더 없는 블록입니다. 크기는 `ceil(width / blockSize) × ceil(height / blockSize) × 16`입니다. `CreateTexture()`는 ASTC 샘플링 지원을 확인한 뒤 CPU 데이터를 업로드합니다. `ToAstcFile()`은 16바이트 헤더를 붙입니다. 파일에는 색 공간과 방향 정보가 없습니다. 데이터는 Unity의 아래쪽 행부터 시작합니다. 외부 뷰어에서는 세로 방향이 반대로 보일 수 있습니다.
+Windows의 최근 아틀라스 렌더러 검산은 Editor·Player 각각 122프레임·562,176픽셀을 통과했습니다. 이는 렌더링 정확도 검산입니다. 성능 측정의 환경·입력·측정 시점은 각 보고서에 따로 기록합니다.
 
 ## 임포트한 ASTC·BC7 텍스처의 아틀라스 패킹
 
@@ -460,6 +394,42 @@ pwsh -File .\Tools\Verify-CompressedAtlas.ps1 -BatchMode
 
 현재 검산은 7개 형식·두 색 공간·두 여백 설정에서 28개 아틀라스와 560개 입력을 통과했습니다. 크기가 다른 입력과 1픽셀·부분 블록을 포함합니다. 3,678,432바이트가 원본과 같았고 배치 겹침·UV·빈 블록·반복 배치·잘못된 입력 12개를 확인했습니다. 실제 번들 검산은 기본 TextureImporter의 32×16·64×32·128×64 BC7 텍스처를 두 색 공간으로 빌드했습니다. 로드한 6개 텍스처에서 첫째·둘째 밉의 아틀라스 4개를 만들었습니다. 첫째 밉의 GPU 디코딩 21,504픽셀이 원본 디코딩과 같았습니다. 원본 번들 해제 뒤 출력 유지도 확인했습니다. 결과는 `.validation/compressed-atlas/`에 있습니다.
 
+## ASTC 인코더의 지원 범위
+
+GPU가 한 밉 레벨의 LDR RGBA를 ASTC로 압축합니다. 4×4·5×5·6×6·8×8·10×10·12×12 정사각 블록을 지원합니다. 블록은 16바이트입니다. 가장자리의 남은 픽셀은 마지막 유효 픽셀로 채웁니다.
+
+BC7 GPU 인코더도 제공합니다. BC7은 PC용 4×4 형식이며 8bpp입니다. Android·iOS용 경로는 ASTC입니다. BC7 사용법과 제한은 아래 ‘BC7 GPU 압축’에 있습니다.
+
+`Fast`는 자주 압축하는 용도입니다. `Balanced`는 더 많은 격자와 끝점 보정을 탐색합니다. `HighQuality`는 Balanced 후보에 16개 가중치 모드, 추가 초기 끝점, RGB 채널별 분리 평면을 더합니다. 끝점을 4회 보정하고 격자 노드가 영향을 주는 픽셀로 가중치를 보정합니다. 세 품질은 단일 분할, RGB 직접 끝점·RGB scale 끝점·RGBA 직접 끝점을 사용합니다. 끝점은 ASTC 비트·trit·quint 정수열로 저장합니다. 생성 표의 기준은 Arm astcenc 5.7.0입니다.
+
+ASTC의 HDR, 다중 분할, 밉 생성, 노멀 맵 전용 최적화는 없습니다. 입력은 0~1로 제한됩니다. astcenc의 전체 탐색과 같은 품질을 제공하지 않습니다. 알파 UI는 4×4부터 검토하십시오. 6×6에서는 가는 경계와 독립적인 RGB·알파 변화의 손실이 큽니다. HighQuality는 처리 비용이 큽니다. 매 프레임 사용 여부는 목표 기기의 시간·발열 측정으로 판단합니다.
+
+Windows에서 실제 GPU 인코딩과 공식 디코더 대조를 완료했습니다. **Android·iOS 기기의 시간·발열·연속 압축은 측정하지 않았습니다. 네이티브 텍스처 업로드는 실험 기능입니다.** 모바일 셰이더 코드 생성과 기기 실행은 서로 다른 검증입니다.
+
+## CPU 결과와 파일 내보내기
+
+Unity에서 **Tools → ASTC → Encoder**를 엽니다. 원본·블록 크기·Quality를 지정하고 **Encode and export .astc**를 누릅니다. 창의 기본 품질은 Balanced입니다. **Tools → ASTC → Create demo scene**은 기본 비교 씬을 생성합니다. 기존 씬은 변경하지 않습니다.
+
+아래 코드는 Unity 메인 스레드에서 실행합니다. `encoderShader`에는 `AstcEncoder.compute`를 연결합니다.
+
+```csharp
+using UnityCompute.Astc;
+using UnityEngine;
+
+using var encoder = new AstcEncoder(encoderShader);
+AstcImage image = await encoder.EncodeAsync(
+    source, AstcBlockSize.Block4x4,
+    srgb: true, sampledInputIsSrgb: false, quality: AstcQuality.Fast);
+Texture2D compressed = image.CreateTexture();
+// 사용이 끝나면 Destroy(compressed)를 호출합니다.
+```
+
+작업이 끝날 때까지 원본과 인코더를 유지합니다. 비동기 읽기를 지원하지 않으면 `Encode`를 사용합니다. 동기 API는 GPU를 기다립니다. 두 API는 출력 버퍼와 CPU 배열을 할당합니다. 매 프레임의 기본 경로로 사용하지 마십시오.
+
+원본은 Texture2D 또는 생성된 단일 샘플 RenderTexture입니다. Read/Write 옵션은 필요하지 않습니다. MSAA 원본은 먼저 단일 샘플로 해석합니다.
+
+`image.Data`는 헤더 없는 블록입니다. 크기는 `ceil(width / blockSize) × ceil(height / blockSize) × 16`입니다. `CreateTexture()`는 ASTC 샘플링 지원을 확인한 뒤 CPU 데이터를 업로드합니다. `ToAstcFile()`은 16바이트 헤더를 붙입니다. 파일에는 색 공간과 방향 정보가 없습니다. 데이터는 Unity의 아래쪽 행부터 시작합니다. 외부 뷰어에서는 세로 방향이 반대로 보일 수 있습니다.
+
 ## 재사용 GPU 출력
 
 출력 버퍼를 한 번 만들고 재사용할 수 있습니다.
@@ -706,7 +676,105 @@ Unity에서 프로젝트를 열고 Pipeline 연결을 기다립니다. `Verify-A
 
 표를 다시 생성하려면 `.validation/reference/`에 Arm 5.7.0의 `Source/astcenc_quantization.cpp`와 `Source/astcenc_integer_sequence.cpp`를 두고 `Tools/Generate-AstcTables.ps1`을 실행합니다. 생성 후 셰이더 컴파일과 디코더 대조를 다시 수행합니다.
 
+## 개발 환경과 실행
+
+이 저장소는 Unity 프로젝트 형태로 제공합니다. Unity Hub에서 `compute/`를 열고 패키지 임포트가 끝날 때까지 기다립니다. Windows의 GPU 텍스처 경로는 Direct3D12를 사용합니다. Unity CLI를 설치한 환경에서는 다음 명령을 사용할 수 있습니다. 실행 파일 경로는 설치 위치에 맞춰 바꿉니다.
+
+```powershell
+& 'C:\Program Files\Unity Hub\resources\unity.exe' open .\compute --editor-version 6000.7.0b5 --args '-force-d3d12'
+```
+
+| 항목 | 프로젝트 설정 |
+|---|---|
+| Unity Editor | 6000.7.0b5 |
+| URP | 17.7.0 |
+| UGUI | 2.7.0 |
+| Input System | 6.7.0 |
+| Unity Pipeline | 0.7.0-exp.1 |
+| Windows 스크립팅 백엔드 | Mono |
+| Android 스크립팅 백엔드 | IL2CPP |
+
+CoreCLR로 전환하지 않았습니다. Pipeline 0.8.0-exp.1은 CLI 속성 어셈블리 분리와 이 프로젝트의 SRP 참조가 맞지 않아 사용하지 않습니다. 이 버전 조건은 `compute/Packages/manifest.json`에 반영돼 있습니다.
+
+검산 도구의 기본 Editor 경로는 `.tooling/Unity/6000.7.0b5/Editor/Unity.exe`입니다. 이 폴더는 Git에 포함하지 않습니다. 다른 위치에 설치한 Editor를 사용하면 도구에 `-UnityEditor`를 전달합니다. GPU 아틀라스 검산 도구에는 `Unity.exe` 파일 경로를 지정합니다. CLI 기반 도구의 실행 파일은 `-UnityCli`로 지정합니다. 네이티브 빌드 도구의 인자는 해당 절차를 따릅니다.
+
+마이그레이션 복구본과 검산 기록의 로컬 저장 위치는 `.validation/migration-6000.7.0b5/`입니다. 이 폴더도 Git에 포함하지 않습니다.
+
+## 파일 안내
+
+| 경로 | 역할 |
+|---|---|
+| `compute/Assets/Astc/Shaders/AstcEncoder.compute` | Fast·Balanced·HighQuality 인코딩 |
+| `compute/Assets/Astc/Shaders/AstcTables.hlsl` | GPU 표 접근 |
+| `compute/Assets/Astc/Runtime/AstcLookup.cs` | 생성된 GPU 표 데이터 |
+| `compute/Assets/Astc/Runtime/AstcEncoder.cs` | 동기·비동기 읽기, 재사용 GPU 버퍼와 행 범위 |
+| `compute/Assets/Astc/Runtime/AstcImage.cs` | 데이터·텍스처·파일 포장 |
+| `compute/Assets/Astc/Runtime/AstcGpuTexture.cs` | 실험용 모바일 GPU 텍스처 갱신 |
+| `compute/Assets/Astc/Runtime/AstcGpuStream.cs` | 매 프레임 사용 예제 |
+| `compute/Assets/Astc/Runtime/AstcGpuRetirement.cs` | GPU 완료 후 자원 해제 |
+| `compute/Assets/Astc/Editor/AstcEncoderWindow.cs` | 내보내기와 기본 예제 씬 |
+| `compute/Assets/Astc/Editor/AstcValidation.cs` | 런타임과 분리된 검산 |
+| `compute/Assets/Astc/Editor/Benchmark/` | 원래 구현·스칼라 디코더·비교 측정 |
+| `compute/Assets/Astc/Editor/Benchmark/AstcPeakMetrics.cs` | RGB·알파·합성의 피크 오차와 최악 블록 계산 |
+| `compute/Assets/Bc7/Shaders/Bc7Encoder.compute` | BC7 세 품질의 진입 커널 |
+| `compute/Assets/Bc7/Shaders/Bc7HighQuality.hlsl` | 2분할 후보 선택·모드 1·3·7 탐색 |
+| `compute/Assets/Bc7/Shaders/Bc7Partitions.hlsl` | Microsoft 참조의 64개 분할·anchor 표 |
+| `compute/Assets/Astc/Editor/Benchmark/HighQualityBenchmark.cs` | 6.7에서 세 품질을 같은 조건으로 비교 |
+| `compute/Assets/Bc7/Runtime/` | BC7 버퍼·동기·비동기 API, 텍스처와 DDS 포장 |
+| `compute/Assets/Bc7/Runtime/Bc7GpuTexture.cs` | Windows D3D12의 GPU 버퍼→BC7 텍스처 갱신 |
+| `compute/Assets/Bc7/Runtime/Bc7GpuStream.cs` | 매 프레임 압축·표시 컴포넌트 |
+| `compute/Assets/Bc7/Editor/` | 내보내기, 별도 디코더, 하드웨어 대조와 비교 측정 |
+| `Tools/Run-Bc7Benchmark.ps1` | 같은 60개 입력의 GPU·Unity BC7 비교 |
+| `Tools/Run-HighQualityBenchmark.ps1` | 세 해상도의 540개 GPU 비교 |
+| `compute/Assets/TextureCompression/Runtime/FrameSlicedGpuJob.cs` | GPU 스냅샷·프레임별 제출·fence 진행 관리 |
+| `compute/Assets/TextureCompression/Runtime/CompressedAtlas.cs` | 압축 Texture2D·블록 바이트의 아틀라스 패킹과 텍스처 생성 |
+| `compute/Assets/TextureCompression/Runtime/CompressedAtlasSource.cs` | GetPixelData로 선택한 밉의 압축 바이트 읽기 |
+| `compute/Assets/TextureCompression/Runtime/CompressedAtlasSampling.hlsl` | 이미지별 UV 변환과 유효 픽셀 경계 제한 |
+| `compute/Assets/TextureCompression/Runtime/BlockAtlasLayout.cs` | CPU·GPU 경로가 공유하는 블록 배치 계산 |
+| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.cs` | Read/Write 없는 직접 복사와 다른 입력만 GPU 변환 |
+| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.Addition.cs` | 기존 위치를 유지하는 추가·확장과 공통 GPU 입력 처리 |
+| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.Editing.cs` | ID 조회·제거·남은 압축 블록의 GPU 재배치 |
+| `compute/Assets/TextureCompression/Runtime/GpuAtlasRenderer.cs` | 고정 ID 렌더러·9-slice·SpriteMask·크기·색상·반전·정렬 |
+| `compute/Assets/Settings/GpuAtlas2D_Renderer.asset` | SpriteMask용 URP 2D Renderer. PC·Mobile 파이프라인의 Renderer 목록 1번 |
+| `compute/Assets/TextureCompression/Runtime/GpuAtlasRenderState.cs` | 아틀라스별 공유 재질·격자 메시·GPU ID 조회 표와 자원 수명 |
+| `compute/Assets/TextureCompression/Resources/GpuAtlasUnlit.shader` | Built-in·URP Forward·Universal2D의 Unlit 렌더 패스 |
+| `compute/Assets/TextureCompression/Resources/GpuAtlasRender.hlsl` | 정수 ID 해시 조회·유효 여부·UV 경계 제한 |
+| `compute/Assets/TextureCompression/Shaders/GpuAtlasConvert.compute` | 선형 RGB로 읽기·목표 블록 크기까지 가장자리 채우기 |
+| `compute/Assets/TextureCompression/Runtime/GpuAtlasBlockCopy.cs` | 부분 블록의 GPU 텍스처→버퍼→텍스처 복사 |
+| `Tools/Verify-GpuAtlas.ps1` | 읽기 불가 혼합 번들·색 공간·GPU 복사·변환·해제 검산 |
+| `compute/Assets/TextureCompression/Editor/GpuAtlasAdditionValidation.cs` | 추가·빈 공간 재사용·확장·실패·작업 중 해제 검산 |
+| `compute/Assets/TextureCompression/Editor/GpuAtlasEditingValidation.cs` | 제거·자리 재사용·재배치·빈 아틀라스·고정 ID 검산 |
+| `compute/Assets/TextureCompression/Editor/GpuAtlasRendererValidation.cs` | 실제 카메라 출력·독립 CPU 참조·플랫폼 셰이더·Player 공통 검산 |
+| `Tools/Verify-GpuAtlasPlayer.ps1` | 별도 Windows Player의 GPU 패킹·재패킹·로더 수명 검산 |
+| `Verification/GpuAtlasPlayerProbe.cs` | 일반 런타임과 분리된 Player 검산 소스 |
+| `Tools/Verify-CompressedAtlas.ps1` | 블록 보존·배치·UV·TextureImporter·AssetBundle 검산 |
+| `Tools/Verify-FrameSliced.ps1` | 분할 바이트·게시·스냅샷·0GC·플랫폼 컴파일 검산 |
+| `Tools/Run-FrameSlicedBenchmark.ps1` | 1024 대표 입력 2개의 일괄·행 묶음 처리량 측정 |
+| `Tools/Render-FrameSlicedBenchmark.mjs` | 프레임 분산 처리량 보고서 생성 |
+| `Tools/Render-HighQualityBenchmark.mjs` | 고퀄 모드의 품질·피크·시간 비교 보고서 |
+| `Tools/Generate-Bc7Tables.ps1` | 고정 Microsoft 소스에서 BC7 분할 표 생성 |
+| `Tools/Verify-Bc7.ps1` | BC7 형식·비동기 출력·셰이더 컴파일 검산 |
+| `Tools/Build-Bc7WindowsPlugin.ps1` | Windows x64 D3D12 복사 플러그인 빌드·설치 |
+| `Tools/Verify-Bc7GpuTexture.ps1` | 직접 복사·연속 프레임·자원 해제 검산 |
+| `Tools/Run-Bc7GpuTextureBenchmark.ps1` | GPU 압축·BC7 복사·샘플링 처리량 측정 |
+| `Tools/Verify-Bc7GpuPlayer.ps1` | 별도 Windows Player의 연속 프레임 검산 |
+| `Verification/Bc7GpuPlayerProbe.cs` | 정상 런타임과 분리된 Player 검산 소스 |
+| `Tools/Update-AstcPeakMetrics.ps1` | 저장된 복원 이미지에서 피크 지표 갱신 |
+| `Native/` | D3D12·Vulkan·Metal 브리지의 기준 소스와 외부 헤더 |
+| `compute/Assets/Astc/Plugins/` | Unity에 설치한 네이티브 산출물 |
+| `Benchmark/Input/manifest.json` | 입력 60개의 크기·알파 통계·SHA-256 |
+| `Benchmark/Sources/sources.json` | 원본 출처·라이선스·SHA-256 |
+| `Benchmark/Results/report.html` | 현재 비교 보고서 |
+
+## Git 기록 범위
+
+소스·Unity 프로젝트 설정·입력 원본과 라이선스·측정 JSON/CSV·HTML 보고서를 기록합니다. Unity 캐시, 설치 도구, 임시 검산, Native/build와 벤치마크의 생성 PNG·ASTC·BC7 블록은 제외합니다. 파일은 로컬에 유지합니다. 새 체크아웃에서 복원 이미지 패널을 보려면 벤치마크를 다시 실행합니다. 측정 manifest의 SHA-256을 보존하도록 Git의 줄바꿈 자동 변환을 끕니다.
+
 ## 근거와 라이선스
+
+이 프로젝트에서 직접 작성한 코드와 문서는 [MIT License](LICENSE)로 배포합니다. 상업적 사용·수정·재배포를 허용합니다. 해당 코드를 배포할 때는 저작권 고지와 라이선스 본문을 함께 유지해야 합니다.
+
+포함된 외부 코드·생성 표·SDK 헤더·이미지에는 각 자료의 원래 라이선스가 적용됩니다. 아래 라이선스 안내와 각 파일의 SPDX·저작권 고지를 따릅니다.
 
 ASTC 형식은 [Arm 설명](https://github.com/ARM-software/astc-encoder/blob/5.7.0/Docs/FormatOverview.md)과 [5.7.0 참조 구현](https://github.com/ARM-software/astc-encoder/tree/5.7.0)을 확인했습니다. BC7은 Microsoft의 [형식 설명](https://learn.microsoft.com/en-us/windows/win32/direct3d11/bc7-format)과 [모드별 비트 배치](https://learn.microsoft.com/en-us/windows/win32/direct3d11/bc7-format-mode-reference)를 기준으로 구현했습니다. 생성 표와 Arm 이미지는 [Apache 2.0](ThirdParty/astcenc/LICENSE.txt), Khronos 이미지는 [MIT](Benchmark/Sources/Khronos-LICENSE.txt)입니다. 사진 출처는 [sources.json](Benchmark/Sources/sources.json)에 있습니다.
 
