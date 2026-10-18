@@ -1,0 +1,379 @@
+
+#pragma kernel EncodeAstcFast ASTC_FAST
+#pragma kernel EncodeAstcBalanced ASTC_BALANCED
+#pragma kernel EncodeAstcHighQuality ASTC_HIGH
+#pragma target 5.0
+#include "AstcTables.hlsl"
+
+// One GPU thread encodes one block. Quality controls the bounded candidate search.
+Texture2D<float4> _Source;
+RWStructuredBuffer<uint4> _Blocks;
+int2 _Size;
+uint _BlockSize, _BlocksX, _ColorTransform, _Quality, _BlockRowStart, _BlockRowCount;
+
+float4 LoadColor(uint2 p)
+{
+    float4 c = saturate(_Source.Load(int3(min(p, (uint2)(_Size - 1)), 0)));
+    if (_ColorTransform == 1)
+        c.rgb = float3(c.r <= .0031308 ? c.r * 12.92 : 1.055 * pow(c.r, 1.0/2.4) - .055,
+                       c.g <= .0031308 ? c.g * 12.92 : 1.055 * pow(c.g, 1.0/2.4) - .055,
+                       c.b <= .0031308 ? c.b * 12.92 : 1.055 * pow(c.b, 1.0/2.4) - .055);
+    else if (_ColorTransform == 2)
+        c.rgb = float3(c.r <= .04045 ? c.r / 12.92 : pow((c.r + .055) / 1.055, 2.4),
+                       c.g <= .04045 ? c.g / 12.92 : pow((c.g + .055) / 1.055, 2.4),
+                       c.b <= .04045 ? c.b / 12.92 : pow((c.b + .055) / 1.055, 2.4));
+    return c;
+}
+uint Unweight(uint q, uint bits)
+{
+    uint v = bits == 1 ? q * 63 : bits == 2 ? q * 21 : bits == 3 ? (q << 3) | q : (q << 2) | (q >> 2);
+    return v + (v > 32 ? 1 : 0);
+}
+uint QuantWeight(float w, uint bits)
+{
+    uint maxq = (1u << bits) - 1u;
+    uint q = (uint)floor(saturate(w) * maxq + .5);
+    uint best = q;
+    float error = abs(Unweight(q, bits) / 64.0 - w);
+    uint a = q > 0 ? q - 1 : 0, b = min(q + 1, maxq);
+    float e = abs(Unweight(a, bits) / 64.0 - w);
+    if (e < error) { best = a; error = e; }
+    if (abs(Unweight(b, bits) / 64.0 - w) < error) best = b;
+    return best;
+}
+void Basis(uint2 p, uint2 grid, out uint4 index, out float4 coefficient)
+{
+    uint2 scale = (1024 + _BlockSize / 2) / (_BlockSize - 1);
+    uint2 pos = (p * scale * (grid - 1) + 32) >> 6;
+    uint2 lo = min(pos >> 4, grid - 1), hi = min(lo + 1, grid - 1), f = pos & 15;
+    uint d = (f.x * f.y + 8) >> 4;
+    index = uint4(lo.y * grid.x + lo.x, lo.y * grid.x + hi.x, hi.y * grid.x + lo.x, hi.y * grid.x + hi.x);
+    coefficient = float4(16 - f.x - f.y + d, f.x - d, f.y - d, d) / 16.0;
+}
+float GridWeight(uint2 p, uint2 grid, uint bits, uint planeOffset, uint weights[64])
+{
+    float result=0;
+    if(all(grid==_BlockSize))result=Unweight(weights[p.y*grid.x+p.x+planeOffset],bits)/64.0;
+    else
+    {
+    uint4 ix=0; float4 c=0; Basis(p, grid, ix, c);
+    float w = dot(float4(Unweight(weights[ix.x + planeOffset], bits), Unweight(weights[ix.y + planeOffset], bits),
+                        Unweight(weights[ix.z + planeOffset], bits), Unweight(weights[ix.w + planeOffset], bits)), c);
+    result=floor(w+.5)/64.0;
+    }
+    return result;
+}
+uint ColorCode(uint q, uint value)
+{
+    uint at = q * 64 + value / 4;
+    uint result=value;
+    if(q!=16)result=(AstcColorPackAt(at) >> ((value & 3) * 8)) & 255;
+    return result;
+}
+uint ColorValue(uint q, uint code)
+{
+    uint result=code;
+    if(q!=16)result=(AstcColorUnpackAt(q * 64 + code / 4) >> ((code & 3) * 8)) & 255;
+    return result;
+}
+uint ColorQuant(uint count, uint budget)
+{
+    return AstcColorQuantAt(count,budget);
+}
+void Endpoints(float4 target0, float4 target1, uint q, bool alpha, out float4 lo, out float4 hi, out uint codes[8])
+{
+    if (dot(target0.rgb, 1.0) > dot(target1.rgb, 1.0)) { float4 t = target0; target0 = target1; target1 = t; }
+    uint4 a, b;
+    [unroll] for (uint c = 0; c < 4; c++)
+    {
+        codes[c * 2] = ColorCode(q, (uint)floor(saturate(target0[c]) * 255 + .5));
+        codes[c * 2 + 1] = ColorCode(q, (uint)floor(saturate(target1[c]) * 255 + .5));
+        a[c] = ColorValue(q, codes[c * 2]); b[c] = ColorValue(q, codes[c * 2 + 1]);
+    }
+    if (a.r + a.g + a.b > b.r + b.g + b.b)
+    {
+        uint4 t = a; a = b; b = t;
+        [unroll] for (uint i = 0; i < 4; i++) { uint tcode = codes[i*2]; codes[i*2] = codes[i*2+1]; codes[i*2+1] = tcode; }
+    }
+    lo = a / 255.0; hi = b / 255.0;
+    if (!alpha) { lo.a = 1; hi.a = 1; }
+    float4 blue0 = float4(2 * target1.rg - target1.b, target1.ba);
+    float4 blue1 = float4(2 * target0.rg - target0.b, target0.ba);
+    if (q!=16 && all(blue0 >= 0) && all(blue0 <= 1) && all(blue1 >= 0) && all(blue1 <= 1))
+    {
+        uint alternate[8]; uint4 va, vb;
+        [unroll] for (uint j = 0; j < 4; ++j)
+        {
+            alternate[j*2] = ColorCode(q, (uint)floor(blue0[j] * 255 + .5));
+            alternate[j*2+1] = ColorCode(q, (uint)floor(blue1[j] * 255 + .5));
+            va[j] = ColorValue(q, alternate[j*2]); vb[j] = ColorValue(q, alternate[j*2+1]);
+        }
+        if (va.r + va.g + va.b > vb.r + vb.g + vb.b)
+        {
+            va.rg = (va.rg + va.b) >> 1; vb.rg = (vb.rg + vb.b) >> 1;
+            float4 al = vb / 255.0, ah = va / 255.0;
+            if (!alpha) { al.a = 1; ah.a = 1; }
+            float directError = dot(lo-target0, lo-target0) + dot(hi-target1, hi-target1);
+            float alternateError = dot(al-target0, al-target0) + dot(ah-target1, ah-target1);
+            if (alternateError < directError)
+            {
+                lo = al; hi = ah;
+                [unroll] for (uint k = 0; k < 8; ++k) codes[k] = alternate[k];
+            }
+        }
+    }
+}
+void WriteBits(inout uint4 block, uint value, uint count, uint offset)
+{
+    uint word = offset >> 5, shift = offset & 31;
+    uint low = (value & ((1u << count) - 1)) << shift;
+    if(word==0)block.x|=low;else if(word==1)block.y|=low;else if(word==2)block.z|=low;else block.w|=low;
+    if (shift + count > 32)
+    {
+        uint high=value>>(32-shift);
+        if(word==0)block.y|=high;else if(word==1)block.z|=high;else if(word==2)block.w|=high;
+    }
+}
+uint PackedRadix(uint radix, uint index)
+{
+    return radix == 3 ? (AstcTritsAt(index / 4) >> ((index & 3) * 8)) & 255 :
+                        (AstcQuintsAt(index / 4) >> ((index & 3) * 8)) & 255;
+}
+void WriteColors(inout uint4 block, uint q, uint count, uint codes[8])
+{
+    uint bits = AstcColorBitsAt(q), radix = AstcColorRadixAt(q), offset = 17;
+    uint group = radix == 3 ? 5 : radix == 5 ? 3 : 1;
+    [loop] for (uint start = 0; start < count; start += group)
+    {
+        uint packed = 0, power = 1;
+        [loop] for (uint j = 0; j < group; ++j)
+        {
+            uint digit = start + j < count ? codes[start + j] >> bits : 0;
+            packed += digit * power; power *= radix;
+        }
+        uint extra = radix == 0 ? 0 : PackedRadix(radix, packed);
+        uint consumed = 0;
+        [loop] for (uint k = 0; k < group && start + k < count; ++k)
+        {
+            uint n = radix == 3 ? (k == 2 || k == 4 ? 1 : 2) : radix == 5 ? (k == 0 ? 3 : 2) : 0;
+            uint v = (codes[start + k] & ((1u << bits) - 1)) | (((extra >> consumed) & ((1u << n) - 1)) << bits);
+            WriteBits(block, v, bits + n, offset); offset += bits + n; consumed += n;
+        }
+    }
+}
+uint4 ConstantBlock(float4 c)
+{
+    uint4 q = (uint4)floor(saturate(c) * 65535 + .5);
+    return uint4(0xFFFFFDFC, 0xFFFFFFFF, q.r | (q.g << 16), q.b | (q.a << 16));
+}
+float4 PlaneMask(uint channel)
+{
+    return channel==0?float4(1,0,0,0):channel==1?float4(0,1,0,0):channel==2?float4(0,0,1,0):float4(0,0,0,1);
+}
+float4 PlaneValues(float2 values,uint channel)
+{
+    return values.xxxx+(values.y-values.x)*PlaneMask(channel);
+}
+float Projection(float4 color, float4 lo, float4 delta, bool dual, uint plane,uint channel)
+{
+    float result=0;
+    if(dual && plane==1)result=saturate((color[channel]-lo[channel])/max(abs(delta[channel]),1e-10)*sign(delta[channel]));
+    else
+    {
+        float4 difference=color-lo;
+        if(dual){float4 keep=1-PlaneMask(channel);difference*=keep;delta*=keep;}
+        result=saturate(dot(difference,delta)/max(dot(delta,delta),1e-12));
+    }
+    return result;
+}
+float4 FastGridColor(uint2 origin,uint node,uint2 grid)
+{
+    float4 result=0;
+    if(all(grid==_BlockSize))result=LoadColor(origin+uint2(node%grid.x,node/grid.x));
+    else
+    {
+    float2 p=float2(node%grid.x,node/grid.x)*(_BlockSize-1)/(grid-1);
+    uint2 lo=(uint2)floor(p),hi=min(lo+1,_BlockSize-1);float2 f=frac(p);
+    result=lerp(lerp(LoadColor(origin+lo),LoadColor(origin+uint2(hi.x,lo.y)),f.x),
+                lerp(LoadColor(origin+uint2(lo.x,hi.y)),LoadColor(origin+hi),f.x),f.y);
+    }
+    return result;
+}
+#if defined(ASTC_HIGH)
+void RefineGrid(uint2 origin,uint2 grid,uint bits,bool dual,uint channel,float4 lo,float4 hi,inout uint weights[64])
+{
+    if(all(grid==_BlockSize))return;
+    uint nodes=grid.x*grid.y,planes=dual?2u:1u;
+    float2 spacing=(_BlockSize-1.0)/(grid-1);
+    [loop]for(uint plane=0;plane<planes;plane++)[loop]for(uint node=0;node<nodes;node++)
+    {
+        float2 location=float2(node%grid.x,node/grid.x);
+        uint2 begin=(uint2)max(0,floor((location-1)*spacing));
+        uint2 end=(uint2)min(_BlockSize-1,ceil((location+1)*spacing));
+        float gradient=0,diagonal=0;
+        [loop]for(uint y=begin.y;y<=end.y;y++)[loop]for(uint x=begin.x;x<=end.x;x++)
+        {
+            uint4 indices;float4 coefficients;Basis(uint2(x,y),grid,indices,coefficients);
+            float coefficient=dot(float4(indices==node),coefficients);
+            if(coefficient<=0)continue;
+            float4 color=LoadColor(origin+uint2(x,y));
+            float residual=Projection(color,lo,hi-lo,dual,plane,channel)-GridWeight(uint2(x,y),grid,bits,plane*nodes,weights);
+            gradient+=coefficient*residual;diagonal+=coefficient*coefficient;
+        }
+        uint at=node+plane*nodes;
+        weights[at]=QuantWeight(Unweight(weights[at],bits)/64.0+gradient/max(diagonal,1e-8),bits);
+    }
+}
+#endif
+#if defined(ASTC_FAST)
+#define ASTC_ENTRY EncodeAstcFast
+#define ASTC_BALANCED_MODE false
+[numthreads(8,4,1)]
+#elif defined(ASTC_HIGH)
+#define ASTC_ENTRY EncodeAstcHighQuality
+#define ASTC_BALANCED_MODE true
+[numthreads(8,4,1)]
+#else
+#define ASTC_ENTRY EncodeAstcBalanced
+#define ASTC_BALANCED_MODE true
+[numthreads(8,4,1)]
+#endif
+void ASTC_ENTRY(uint3 id:SV_DispatchThreadID)
+{
+    if(id.y>=_BlockRowCount)return;
+    id.y+=_BlockRowStart;
+    uint2 blocks=((uint2)_Size+_BlockSize-1)/_BlockSize;
+    if(any(id.xy>=blocks))return;
+    uint2 origin=id.xy*_BlockSize;
+    uint n=_BlockSize*_BlockSize;
+    float4 sum=0,minimum=1,maximum=0;float3 cr=0,cg=0,cb=0;float totalSquared=0;
+    [loop] for(uint y=0;y<_BlockSize;y++)
+    [loop] for(uint x=0;x<_BlockSize;x++)
+    {
+        float4 c=LoadColor(origin+uint2(x,y));sum+=c;minimum=min(minimum,c);maximum=max(maximum,c);totalSquared+=dot(c,c);
+        cr+=c.r*c.rgb;cg+=c.g*c.rgb;cb+=c.b*c.rgb;
+    }
+    float4 mean=sum/n;
+    if(all(maximum-minimum<1e-6)){_Blocks[id.y*_BlocksX+id.x]=ConstantBlock(mean);return;}
+    cr-=mean.r*sum.rgb;cg-=mean.g*sum.rgb;cb-=mean.b*sum.rgb;
+    float3 variance=float3(cr.r,cg.g,cb.b);float v=max(variance.r,max(variance.g,variance.b));
+    float3 axis=variance.r==v?float3(1,0,0):variance.g==v?float3(0,1,0):float3(0,0,1);
+    [unroll] for(uint i=0;i<4;i++)
+    {
+        float3 next=float3(dot(cr,axis),dot(cg,axis),dot(cb,axis));
+        axis=next*rsqrt(max(dot(next,next),1e-20));
+    }
+    float lowProjection=1e20,highProjection=-1e20;
+    [loop] for(uint py=0;py<_BlockSize;py++)
+    [loop] for(uint px=0;px<_BlockSize;px++)
+    {
+        float p=dot(LoadColor(origin+uint2(px,py)).rgb-mean.rgb,axis);
+        lowProjection=min(lowProjection,p);highProjection=max(highProjection,p);
+    }
+    float4 initialLo=float4(saturate(mean.rgb+axis*lowProjection),minimum.a);
+    float4 initialHi=float4(saturate(mean.rgb+axis*highProjection),maximum.a);
+    bool alpha=minimum.a<.99999;
+    float bestError=1e30;uint4 best=0;
+    bool balanced=ASTC_BALANCED_MODE;
+    uint candidateCount=balanced?(_BlockSize==4?2u:alpha?8u:5u):(_BlockSize==4?(alpha?2u:1u):alpha?4u:2u);
+    uint originalCandidates=candidateCount;
+#if defined(ASTC_HIGH)
+    candidateCount+=25;
+#endif
+    [loop] for(uint candidate=0;candidate<candidateCount;candidate++)
+    {
+        bool dual=alpha&&(candidate==1||candidate==2||candidate>=6||(!balanced&&candidate==3));
+        uint planeChannel=3;
+        bool scaled=!alpha&&candidate==1;
+        uint modeIndex=dual?7:_BlockSize==4?(alpha?0:6):_BlockSize==5?2:3;
+        if(candidate>=2)
+        {
+            if(alpha)modeIndex=!balanced?(candidate==2?14:15):candidate==2?9:candidate==3?2:candidate==4?4:candidate==5?5:candidate==6?14:15;
+            else modeIndex=candidate==2?2:candidate==3?4:5;
+        }
+#if defined(ASTC_HIGH)
+        if(candidate>=originalCandidates)
+        {
+            uint extra=candidate-originalCandidates;
+            modeIndex=extra<16?extra:extra==16?0:extra==17?7:extra==18?1:extra<22?7:8;
+            dual=(AstcModeAt(modeIndex).w&1024u)!=0;
+            scaled=false;
+            if(dual&&!alpha)
+            {
+                float eigenvalue=dot(axis,float3(dot(cr,axis),dot(cg,axis),dot(cb,axis)));
+                float3 residual=variance-eigenvalue*axis*axis;
+                planeChannel=residual.r>=residual.g?(residual.r>=residual.b?0u:2u):(residual.g>=residual.b?1u:2u);
+            }
+            if(extra>=19)planeChannel=(extra-19)%3;
+        }
+#endif
+        uint4 mode=AstcModeAt(modeIndex);uint nodes=mode.x*mode.y,planes=dual?2u:1u;
+        if(mode.x>_BlockSize||mode.y>_BlockSize)continue;
+        if(nodes*planes>64)continue;
+        uint weightBits=nodes*planes*mode.z,endpointCount=scaled?4u:alpha?8u:6u;
+        if(weightBits>96||weightBits<24||128-17-weightBits-(dual?2u:0u)<endpointCount*2)continue;
+        uint q=scaled?16:ColorQuant(endpointCount,128-17-weightBits-(dual?2:0));
+        float4 lo=initialLo,hi=initialHi;uint weights[64];uint codes[8];
+#if defined(ASTC_HIGH)
+        if(candidate>=originalCandidates+16&&candidate<originalCandidates+19){lo=minimum;hi=maximum;}
+#endif
+        [unroll] for(uint clearWeight=0;clearWeight<64;clearWeight++)weights[clearWeight]=0;
+        [unroll] for(uint clearCode=0;clearCode<8;clearCode++)codes[clearCode]=0;
+        uint iterations=balanced?3u:2u;
+#if defined(ASTC_HIGH)
+        iterations=4;
+#endif
+        [loop] for(uint iteration=0;iteration<iterations;iteration++)
+        {
+            if(scaled)
+            {
+                if(dot(lo.rgb,lo.rgb)>dot(hi.rgb,hi.rgb)){float4 swap=lo;lo=hi;hi=swap;}
+                float scale=saturate(dot(lo.rgb,hi.rgb)/max(dot(hi.rgb,hi.rgb),1e-12));
+                uint3 baseColor=(uint3)floor(saturate(hi.rgb)*255+.5);
+                uint multiplier=min(255u,(uint)floor(scale*256+.5));
+                codes[0]=baseColor.r;codes[1]=baseColor.g;codes[2]=baseColor.b;codes[3]=multiplier;
+                hi=float4(baseColor/255.0,1);lo=float4(((baseColor*multiplier)>>8)/255.0,1);
+            }
+            else Endpoints(lo,hi,q,alpha,lo,hi,codes);
+            float4 delta=hi-lo;
+            [loop] for(uint plane=0;plane<planes;plane++)
+            [loop] for(uint node=0;node<nodes;node++)
+                weights[node+plane*nodes]=QuantWeight(Projection(FastGridColor(origin,node,mode.xy),lo,delta,dual,plane,planeChannel),mode.z);
+#if defined(ASTC_HIGH)
+            // Keep the first three iterations identical to Balanced, then fit the grid to all texels.
+            if(iteration>=3)RefineGrid(origin,mode.xy,mode.z,dual,planeChannel,lo,hi,weights);
+#endif
+            float2 sw=0,sww=0;float4 swc=0;float error=0;
+            [loop] for(uint y2=0;y2<_BlockSize;y2++)
+            [loop] for(uint x2=0;x2<_BlockSize;x2++)
+            {
+                float4 color=LoadColor(origin+uint2(x2,y2));
+                float w=GridWeight(uint2(x2,y2),mode.xy,mode.z,0,weights);
+                float wa=dual?GridWeight(uint2(x2,y2),mode.xy,mode.z,nodes,weights):w;
+                float4 interpolants=PlaneValues(float2(w,wa),planeChannel);
+                float4 difference=color-(lo+delta*interpolants);error+=dot(difference,difference);
+                sw+=float2(w,wa);sww+=float2(w*w,wa*wa);swc+=color*interpolants;
+            }
+            if(error<bestError)
+            {
+                bestError=error;best=uint4(mode.w|((scaled?6u:alpha?12u:8u)<<13),0,0,0);
+                WriteColors(best,q,endpointCount,codes);
+                if(dual)WriteBits(best,planeChannel,2,128-weightBits-2);
+                [loop] for(uint node2=0;node2<nodes;node2++)
+                [loop] for(uint plane2=0;plane2<planes;plane2++)
+                {
+                    uint element=node2*planes+plane2;
+                    WriteBits(best,reversebits(weights[node2+plane2*nodes])>>(32-mode.z),mode.z,128-(element+1)*mode.z);
+                }
+            }
+            float2 aa=n-2*sw+sww,ab=sw-sww,det=aa*sww-ab*ab;
+            float4 ac=PlaneValues(aa,planeChannel),bc=PlaneValues(ab,planeChannel);
+            float4 cc=PlaneValues(sww,planeChannel),dd=PlaneValues(det,planeChannel);
+            lo=saturate(lerp(lo,((sum-swc)*cc-swc*bc)/max(dd,1e-10),float4(dd>1e-6)));
+            hi=saturate(lerp(hi,(swc*ac-(sum-swc)*bc)/max(dd,1e-10),float4(dd>1e-6)));
+        }
+    }
+    float constantError=max(0,totalSquared-dot(sum,mean));
+    _Blocks[id.y*_BlocksX+id.x]=constantError<bestError?ConstantBlock(mean):best;
+}
+

@@ -1,0 +1,10 @@
+# Keep source and input bytes identical to recorded SHA-256 manifests.
+* -text whitespace=cr-at-eol
+# Unity writes a separator space after empty YAML fields.
+*.asset whitespace=-blank-at-eol,cr-at-eol
+*.meta whitespace=-blank-at-eol,cr-at-eol
+*.unity whitespace=-blank-at-eol,cr-at-eol
+# Preserve recorded shader bytes and upstream SDK header formatting.
+compute/Assets/**/Shaders/*.compute whitespace=-blank-at-eof,cr-at-eol
+compute/Assets/**/Shaders/*.hlsl whitespace=-blank-at-eof,cr-at-eol
+Native/Unity/** whitespace=-blank-at-eol,cr-at-eol

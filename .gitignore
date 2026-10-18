@@ -1,0 +1,19 @@
+.validation/
+.tooling/
+compute/[Ll]ibrary/
+compute/[Tt]emp/
+compute/[Oo]bj/
+compute/[Ll]ogs/
+compute/[Uu]ser[Ss]ettings/
+compute/[Bb]uild/
+compute/[Bb]uilds/
+compute/.vs/
+compute/*.csproj
+compute/*.sln
+compute/*.slnx
+Native/build/
+# Recreate these from the tracked inputs and benchmark tools.
+Benchmark/Results/**/*.astc
+Benchmark/Results/**/*.bin
+Benchmark/Results/**/*.png
+Benchmark/Results/**/*probe*

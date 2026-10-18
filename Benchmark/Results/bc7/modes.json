@@ -1,0 +1,2164 @@
+{
+    "rows": [
+        {
+            "texture": "aerial_rocks_02",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "aerial_rocks_02",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 28302,
+            "mode5": 5349,
+            "mode6": 31885,
+            "rotations": [
+                1,
+                200,
+                899,
+                32551
+            ],
+            "selectors": [
+                4003,
+                24299
+            ]
+        },
+        {
+            "texture": "blue_floor_tiles_01",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "blue_floor_tiles_01",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 14454,
+            "mode5": 5767,
+            "mode6": 45315,
+            "rotations": [
+                4,
+                3750,
+                1162,
+                15305
+            ],
+            "selectors": [
+                2607,
+                11847
+            ]
+        },
+        {
+            "texture": "brick_wall_001",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "brick_wall_001",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 10065,
+            "mode5": 9203,
+            "mode6": 46268,
+            "rotations": [
+                5,
+                14234,
+                137,
+                4892
+            ],
+            "selectors": [
+                1513,
+                8552
+            ]
+        },
+        {
+            "texture": "brown_leather",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "brown_leather",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 6905,
+            "mode5": 9910,
+            "mode6": 48721,
+            "rotations": [
+                0,
+                3038,
+                2,
+                13775
+            ],
+            "selectors": [
+                250,
+                6655
+            ]
+        },
+        {
+            "texture": "fabric_pattern_07",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "fabric_pattern_07",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 10174,
+            "mode5": 112,
+            "mode6": 55250,
+            "rotations": [
+                1,
+                6009,
+                0,
+                4276
+            ],
+            "selectors": [
+                392,
+                9782
+            ]
+        },
+        {
+            "texture": "grass_ground",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "grass_ground",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 20471,
+            "mode5": 8957,
+            "mode6": 36108,
+            "rotations": [
+                0,
+                5254,
+                23860,
+                314
+            ],
+            "selectors": [
+                1932,
+                18539
+            ]
+        },
+        {
+            "texture": "green_metal_rust",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "green_metal_rust",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 1401,
+            "mode5": 25385,
+            "mode6": 38750,
+            "rotations": [
+                51,
+                9831,
+                7699,
+                9205
+            ],
+            "selectors": [
+                178,
+                1223
+            ]
+        },
+        {
+            "texture": "grey_plaster",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "grey_plaster",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 2789,
+            "mode5": 110,
+            "mode6": 62637,
+            "rotations": [
+                0,
+                27,
+                0,
+                2872
+            ],
+            "selectors": [
+                574,
+                2215
+            ]
+        },
+        {
+            "texture": "rgba_arm_00",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 10291,
+            "mode6": 55245,
+            "rotations": [
+                10291,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_00",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 7735,
+            "mode5": 15521,
+            "mode6": 42280,
+            "rotations": [
+                10193,
+                5023,
+                3325,
+                4715
+            ],
+            "selectors": [
+                3225,
+                4510
+            ]
+        },
+        {
+            "texture": "rgba_arm_01",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 10291,
+            "mode6": 55245,
+            "rotations": [
+                10291,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_01",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 8336,
+            "mode5": 15185,
+            "mode6": 42015,
+            "rotations": [
+                10329,
+                6596,
+                3137,
+                3459
+            ],
+            "selectors": [
+                1672,
+                6664
+            ]
+        },
+        {
+            "texture": "rgba_arm_02",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 1437,
+            "mode6": 64099,
+            "rotations": [
+                1437,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_02",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 3407,
+            "mode5": 5930,
+            "mode6": 56199,
+            "rotations": [
+                1505,
+                1500,
+                2111,
+                4221
+            ],
+            "selectors": [
+                897,
+                2510
+            ]
+        },
+        {
+            "texture": "rgba_gradient",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 14206,
+            "mode6": 51330,
+            "rotations": [
+                14206,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_gradient",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 613,
+            "mode5": 37763,
+            "mode6": 27160,
+            "rotations": [
+                5283,
+                12113,
+                11518,
+                9462
+            ],
+            "selectors": [
+                190,
+                423
+            ]
+        },
+        {
+            "texture": "rgba_grass",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 23267,
+            "mode6": 42269,
+            "rotations": [
+                23267,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_grass",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 22403,
+            "mode5": 2401,
+            "mode6": 40732,
+            "rotations": [
+                23742,
+                535,
+                294,
+                233
+            ],
+            "selectors": [
+                15540,
+                6863
+            ]
+        },
+        {
+            "texture": "rgba_khronos_base",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 6274,
+            "mode6": 59262,
+            "rotations": [
+                6274,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_khronos_base",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 10980,
+            "mode5": 15164,
+            "mode6": 39392,
+            "rotations": [
+                4696,
+                10687,
+                518,
+                10243
+            ],
+            "selectors": [
+                2257,
+                8723
+            ]
+        },
+        {
+            "texture": "rgba_khronos_diffuse",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 20271,
+            "mode6": 45265,
+            "rotations": [
+                20271,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_khronos_diffuse",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 8357,
+            "mode5": 21637,
+            "mode6": 35542,
+            "rotations": [
+                19458,
+                6768,
+                343,
+                3425
+            ],
+            "selectors": [
+                2142,
+                6215
+            ]
+        },
+        {
+            "texture": "rgba_leaves",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 4840,
+            "mode6": 60696,
+            "rotations": [
+                4840,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_leaves",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 6781,
+            "mode5": 2942,
+            "mode6": 55813,
+            "rotations": [
+                5180,
+                3374,
+                77,
+                1092
+            ],
+            "selectors": [
+                3834,
+                2947
+            ]
+        },
+        {
+            "texture": "rgba_soft_smoke",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 1632,
+            "mode6": 63904,
+            "rotations": [
+                1632,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_soft_smoke",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 21976,
+            "mode5": 12683,
+            "mode6": 30877,
+            "rotations": [
+                1706,
+                1055,
+                1794,
+                30104
+            ],
+            "selectors": [
+                2824,
+                19152
+            ]
+        },
+        {
+            "texture": "ui_alpha_atlas",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 20195,
+            "mode6": 45341,
+            "rotations": [
+                20195,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "ui_alpha_atlas",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 7022,
+            "mode5": 21447,
+            "mode6": 37067,
+            "rotations": [
+                11712,
+                6464,
+                4825,
+                5468
+            ],
+            "selectors": [
+                5002,
+                2020
+            ]
+        },
+        {
+            "texture": "ui_opaque_atlas",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 23644,
+            "mode6": 41892,
+            "rotations": [
+                23644,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "ui_opaque_atlas",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 1233,
+            "mode5": 46733,
+            "mode6": 17570,
+            "rotations": [
+                24555,
+                9591,
+                6981,
+                6839
+            ],
+            "selectors": [
+                204,
+                1029
+            ]
+        },
+        {
+            "texture": "wood_floor_worn",
+            "encoder": "bc7-fast",
+            "width": 1024,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 65536,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "wood_floor_worn",
+            "encoder": "bc7-balanced",
+            "width": 1024,
+            "mode4": 7962,
+            "mode5": 30316,
+            "mode6": 27258,
+            "rotations": [
+                3,
+                11734,
+                1220,
+                25321
+            ],
+            "selectors": [
+                683,
+                7279
+            ]
+        },
+        {
+            "texture": "aerial_rocks_02",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "aerial_rocks_02",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 2163,
+            "mode5": 299,
+            "mode6": 1634,
+            "rotations": [
+                0,
+                6,
+                103,
+                2353
+            ],
+            "selectors": [
+                393,
+                1770
+            ]
+        },
+        {
+            "texture": "blue_floor_tiles_01",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "blue_floor_tiles_01",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1470,
+            "mode5": 412,
+            "mode6": 2214,
+            "rotations": [
+                0,
+                484,
+                80,
+                1318
+            ],
+            "selectors": [
+                407,
+                1063
+            ]
+        },
+        {
+            "texture": "brick_wall_001",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "brick_wall_001",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1825,
+            "mode5": 703,
+            "mode6": 1568,
+            "rotations": [
+                0,
+                2036,
+                18,
+                474
+            ],
+            "selectors": [
+                386,
+                1439
+            ]
+        },
+        {
+            "texture": "brown_leather",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "brown_leather",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 10,
+            "mode5": 111,
+            "mode6": 3975,
+            "rotations": [
+                0,
+                21,
+                1,
+                99
+            ],
+            "selectors": [
+                1,
+                9
+            ]
+        },
+        {
+            "texture": "fabric_pattern_07",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "fabric_pattern_07",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1193,
+            "mode5": 2,
+            "mode6": 2901,
+            "rotations": [
+                0,
+                208,
+                0,
+                987
+            ],
+            "selectors": [
+                35,
+                1158
+            ]
+        },
+        {
+            "texture": "grass_ground",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "grass_ground",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 368,
+            "mode5": 501,
+            "mode6": 3227,
+            "rotations": [
+                0,
+                166,
+                694,
+                9
+            ],
+            "selectors": [
+                34,
+                334
+            ]
+        },
+        {
+            "texture": "green_metal_rust",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "green_metal_rust",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 122,
+            "mode5": 2052,
+            "mode6": 1922,
+            "rotations": [
+                2,
+                670,
+                552,
+                950
+            ],
+            "selectors": [
+                19,
+                103
+            ]
+        },
+        {
+            "texture": "grey_plaster",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "grey_plaster",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 89,
+            "mode5": 94,
+            "mode6": 3913,
+            "rotations": [
+                0,
+                0,
+                0,
+                183
+            ],
+            "selectors": [
+                24,
+                65
+            ]
+        },
+        {
+            "texture": "rgba_arm_00",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 1196,
+            "mode6": 2900,
+            "rotations": [
+                1196,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_00",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1878,
+            "mode5": 373,
+            "mode6": 1845,
+            "rotations": [
+                1237,
+                416,
+                195,
+                403
+            ],
+            "selectors": [
+                715,
+                1163
+            ]
+        },
+        {
+            "texture": "rgba_arm_01",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 557,
+            "mode6": 3539,
+            "rotations": [
+                557,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_01",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1186,
+            "mode5": 251,
+            "mode6": 2659,
+            "rotations": [
+                860,
+                491,
+                61,
+                25
+            ],
+            "selectors": [
+                74,
+                1112
+            ]
+        },
+        {
+            "texture": "rgba_arm_02",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 2,
+            "mode6": 4094,
+            "rotations": [
+                2,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_02",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 476,
+            "mode5": 48,
+            "mode6": 3572,
+            "rotations": [
+                6,
+                28,
+                34,
+                456
+            ],
+            "selectors": [
+                55,
+                421
+            ]
+        },
+        {
+            "texture": "rgba_gradient",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 1739,
+            "mode6": 2357,
+            "rotations": [
+                1739,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_gradient",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 152,
+            "mode5": 2766,
+            "mode6": 1178,
+            "rotations": [
+                1114,
+                605,
+                728,
+                471
+            ],
+            "selectors": [
+                44,
+                108
+            ]
+        },
+        {
+            "texture": "rgba_grass",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 3728,
+            "mode6": 368,
+            "rotations": [
+                3728,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_grass",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 3694,
+            "mode5": 112,
+            "mode6": 290,
+            "rotations": [
+                3658,
+                101,
+                37,
+                10
+            ],
+            "selectors": [
+                2219,
+                1475
+            ]
+        },
+        {
+            "texture": "rgba_khronos_base",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 482,
+            "mode6": 3614,
+            "rotations": [
+                482,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_khronos_base",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 861,
+            "mode5": 1001,
+            "mode6": 2234,
+            "rotations": [
+                512,
+                574,
+                43,
+                733
+            ],
+            "selectors": [
+                164,
+                697
+            ]
+        },
+        {
+            "texture": "rgba_khronos_diffuse",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 1300,
+            "mode6": 2796,
+            "rotations": [
+                1300,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_khronos_diffuse",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1000,
+            "mode5": 1209,
+            "mode6": 1887,
+            "rotations": [
+                1398,
+                447,
+                46,
+                318
+            ],
+            "selectors": [
+                220,
+                780
+            ]
+        },
+        {
+            "texture": "rgba_leaves",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 1105,
+            "mode6": 2991,
+            "rotations": [
+                1105,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_leaves",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1312,
+            "mode5": 227,
+            "mode6": 2557,
+            "rotations": [
+                1101,
+                329,
+                18,
+                91
+            ],
+            "selectors": [
+                682,
+                630
+            ]
+        },
+        {
+            "texture": "rgba_soft_smoke",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 1438,
+            "mode6": 2658,
+            "rotations": [
+                1438,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_soft_smoke",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 2745,
+            "mode5": 600,
+            "mode6": 751,
+            "rotations": [
+                1605,
+                43,
+                93,
+                1604
+            ],
+            "selectors": [
+                315,
+                2430
+            ]
+        },
+        {
+            "texture": "ui_alpha_atlas",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 1637,
+            "mode6": 2459,
+            "rotations": [
+                1637,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "ui_alpha_atlas",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 1496,
+            "mode5": 434,
+            "mode6": 2166,
+            "rotations": [
+                1519,
+                69,
+                215,
+                127
+            ],
+            "selectors": [
+                505,
+                991
+            ]
+        },
+        {
+            "texture": "ui_opaque_atlas",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 396,
+            "mode6": 3700,
+            "rotations": [
+                396,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "ui_opaque_atlas",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 676,
+            "mode5": 846,
+            "mode6": 2574,
+            "rotations": [
+                446,
+                363,
+                400,
+                313
+            ],
+            "selectors": [
+                135,
+                541
+            ]
+        },
+        {
+            "texture": "wood_floor_worn",
+            "encoder": "bc7-fast",
+            "width": 256,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 4096,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "wood_floor_worn",
+            "encoder": "bc7-balanced",
+            "width": 256,
+            "mode4": 584,
+            "mode5": 1764,
+            "mode6": 1748,
+            "rotations": [
+                0,
+                942,
+                41,
+                1365
+            ],
+            "selectors": [
+                56,
+                528
+            ]
+        },
+        {
+            "texture": "aerial_rocks_02",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "aerial_rocks_02",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 7941,
+            "mode5": 1379,
+            "mode6": 7064,
+            "rotations": [
+                0,
+                53,
+                328,
+                8939
+            ],
+            "selectors": [
+                1285,
+                6656
+            ]
+        },
+        {
+            "texture": "blue_floor_tiles_01",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "blue_floor_tiles_01",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 5255,
+            "mode5": 1777,
+            "mode6": 9352,
+            "rotations": [
+                0,
+                1530,
+                351,
+                5151
+            ],
+            "selectors": [
+                1152,
+                4103
+            ]
+        },
+        {
+            "texture": "brick_wall_001",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "brick_wall_001",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 4589,
+            "mode5": 3233,
+            "mode6": 8562,
+            "rotations": [
+                0,
+                5926,
+                53,
+                1843
+            ],
+            "selectors": [
+                830,
+                3759
+            ]
+        },
+        {
+            "texture": "brown_leather",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "brown_leather",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 332,
+            "mode5": 1186,
+            "mode6": 14866,
+            "rotations": [
+                0,
+                290,
+                0,
+                1228
+            ],
+            "selectors": [
+                5,
+                327
+            ]
+        },
+        {
+            "texture": "fabric_pattern_07",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "fabric_pattern_07",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 3929,
+            "mode5": 5,
+            "mode6": 12450,
+            "rotations": [
+                0,
+                1345,
+                0,
+                2589
+            ],
+            "selectors": [
+                137,
+                3792
+            ]
+        },
+        {
+            "texture": "grass_ground",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "grass_ground",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 2803,
+            "mode5": 2218,
+            "mode6": 11363,
+            "rotations": [
+                0,
+                895,
+                4057,
+                69
+            ],
+            "selectors": [
+                235,
+                2568
+            ]
+        },
+        {
+            "texture": "green_metal_rust",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "green_metal_rust",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 422,
+            "mode5": 7246,
+            "mode6": 8716,
+            "rotations": [
+                12,
+                2653,
+                2062,
+                2941
+            ],
+            "selectors": [
+                51,
+                371
+            ]
+        },
+        {
+            "texture": "grey_plaster",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "grey_plaster",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 757,
+            "mode5": 184,
+            "mode6": 15443,
+            "rotations": [
+                0,
+                4,
+                0,
+                937
+            ],
+            "selectors": [
+                200,
+                557
+            ]
+        },
+        {
+            "texture": "rgba_arm_00",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 3740,
+            "mode6": 12644,
+            "rotations": [
+                3740,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_00",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 4299,
+            "mode5": 3080,
+            "mode6": 9005,
+            "rotations": [
+                3865,
+                1375,
+                759,
+                1380
+            ],
+            "selectors": [
+                1517,
+                2782
+            ]
+        },
+        {
+            "texture": "rgba_arm_01",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 2447,
+            "mode6": 13937,
+            "rotations": [
+                2447,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_01",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 4064,
+            "mode5": 2144,
+            "mode6": 10176,
+            "rotations": [
+                3478,
+                1720,
+                544,
+                466
+            ],
+            "selectors": [
+                465,
+                3599
+            ]
+        },
+        {
+            "texture": "rgba_arm_02",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 393,
+            "mode6": 15991,
+            "rotations": [
+                393,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_arm_02",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 1419,
+            "mode5": 703,
+            "mode6": 14262,
+            "rotations": [
+                408,
+                208,
+                346,
+                1160
+            ],
+            "selectors": [
+                220,
+                1199
+            ]
+        },
+        {
+            "texture": "rgba_gradient",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 4608,
+            "mode6": 11776,
+            "rotations": [
+                4608,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_gradient",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 374,
+            "mode5": 10289,
+            "mode6": 5721,
+            "rotations": [
+                2409,
+                2900,
+                3025,
+                2329
+            ],
+            "selectors": [
+                134,
+                240
+            ]
+        },
+        {
+            "texture": "rgba_grass",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 10662,
+            "mode6": 5722,
+            "rotations": [
+                10662,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_grass",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 10180,
+            "mode5": 1203,
+            "mode6": 5001,
+            "rotations": [
+                10562,
+                432,
+                251,
+                138
+            ],
+            "selectors": [
+                6787,
+                3393
+            ]
+        },
+        {
+            "texture": "rgba_khronos_base",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 1526,
+            "mode6": 14858,
+            "rotations": [
+                1526,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_khronos_base",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 2756,
+            "mode5": 4068,
+            "mode6": 9560,
+            "rotations": [
+                1516,
+                2456,
+                152,
+                2700
+            ],
+            "selectors": [
+                602,
+                2154
+            ]
+        },
+        {
+            "texture": "rgba_khronos_diffuse",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 4932,
+            "mode6": 11452,
+            "rotations": [
+                4932,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_khronos_diffuse",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 2713,
+            "mode5": 5072,
+            "mode6": 8599,
+            "rotations": [
+                5126,
+                1632,
+                127,
+                900
+            ],
+            "selectors": [
+                735,
+                1978
+            ]
+        },
+        {
+            "texture": "rgba_leaves",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 2288,
+            "mode6": 14096,
+            "rotations": [
+                2288,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_leaves",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 3033,
+            "mode5": 964,
+            "mode6": 12387,
+            "rotations": [
+                2327,
+                1251,
+                25,
+                394
+            ],
+            "selectors": [
+                1529,
+                1504
+            ]
+        },
+        {
+            "texture": "rgba_soft_smoke",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 2118,
+            "mode6": 14266,
+            "rotations": [
+                2118,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "rgba_soft_smoke",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 7891,
+            "mode5": 3076,
+            "mode6": 5417,
+            "rotations": [
+                2392,
+                269,
+                546,
+                7760
+            ],
+            "selectors": [
+                979,
+                6912
+            ]
+        },
+        {
+            "texture": "ui_alpha_atlas",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 4797,
+            "mode6": 11587,
+            "rotations": [
+                4797,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "ui_alpha_atlas",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 3298,
+            "mode5": 3263,
+            "mode6": 9823,
+            "rotations": [
+                3920,
+                931,
+                1009,
+                701
+            ],
+            "selectors": [
+                1823,
+                1475
+            ]
+        },
+        {
+            "texture": "ui_opaque_atlas",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 3596,
+            "mode6": 12788,
+            "rotations": [
+                3596,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "ui_opaque_atlas",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 950,
+            "mode5": 7120,
+            "mode6": 8314,
+            "rotations": [
+                3806,
+                1516,
+                1652,
+                1096
+            ],
+            "selectors": [
+                162,
+                788
+            ]
+        },
+        {
+            "texture": "wood_floor_worn",
+            "encoder": "bc7-fast",
+            "width": 512,
+            "mode4": 0,
+            "mode5": 0,
+            "mode6": 16384,
+            "rotations": [
+                0,
+                0,
+                0,
+                0
+            ],
+            "selectors": [
+                0,
+                0
+            ]
+        },
+        {
+            "texture": "wood_floor_worn",
+            "encoder": "bc7-balanced",
+            "width": 512,
+            "mode4": 1802,
+            "mode5": 6930,
+            "mode6": 7652,
+            "rotations": [
+                1,
+                2618,
+                288,
+                5825
+            ],
+            "selectors": [
+                149,
+                1653
+            ]
+        }
+    ]
+}

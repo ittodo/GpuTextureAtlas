@@ -1,0 +1,180 @@
+[
+  {
+    "id": "brick_wall_001",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/brick_wall_001",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/brick_wall_001/brick_wall_001_diffuse_1k.png",
+    "sha256": "903F042853052B3B4DCBF9A511D688B77983F5AF641A3EFFBB2E130D159DAED0",
+    "group": "opaque"
+  },
+  {
+    "id": "wood_floor_worn",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/wood_floor_worn",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/wood_floor_worn/wood_floor_worn_diff_1k.png",
+    "sha256": "9EE2CF02ECD5A3F99C2A4264848703921BD1217F8D5CCB02DDC1597CDE36BB50",
+    "group": "opaque"
+  },
+  {
+    "id": "aerial_rocks_02",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/aerial_rocks_02",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/aerial_rocks_02/aerial_rocks_02_diff_1k.png",
+    "sha256": "1010E597D6F3C90834AC867423692A94E8D58BEE7BB5D25BCA1C126F46B1AD52",
+    "group": "opaque"
+  },
+  {
+    "id": "fabric_pattern_07",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/fabric_pattern_07",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/fabric_pattern_07/fabric_pattern_07_col_2_1k.png",
+    "sha256": "BB1A999585F131C656028E967455995392E21EBC8360AF9E4CDAC002BD432031",
+    "group": "opaque"
+  },
+  {
+    "id": "brown_leather",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/brown_leather",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/brown_leather/brown_leather_albedo_1k.png",
+    "sha256": "24F8BF54EE3B436F3077EACEFB710AB77F62772FB75C5298E862854B597CD664",
+    "group": "opaque"
+  },
+  {
+    "id": "green_metal_rust",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/green_metal_rust",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/green_metal_rust/green_metal_rust_diff_1k.png",
+    "sha256": "BA0583E7331E507B1E0AADBC0ED6FA5DE265FA86472577FB0441CD60C4BF9F69",
+    "group": "opaque"
+  },
+  {
+    "id": "grass_ground",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/grass_ground",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/grass_ground/grass_ground_diff_1k.png",
+    "sha256": "FBAB95206455B849677A07372EA2050956AFBB559D9DA6DB946E3E6C02AAE6A1",
+    "group": "opaque"
+  },
+  {
+    "id": "grey_plaster",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/grey_plaster",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/grey_plaster/grey_plaster_diff_1k.png",
+    "sha256": "E7F7F7FD113CBE3E882FC5D3F5F587216BE62DB629F1F32DEE1FAD86F412A3DF",
+    "group": "opaque"
+  },
+  {
+    "id": "blue_floor_tiles_01",
+    "kind": "photographic PBR diffuse",
+    "license": "CC0",
+    "page": "https://polyhaven.com/a/blue_floor_tiles_01",
+    "url": "https://dl.polyhaven.org/file/ph-assets/Textures/png/1k/blue_floor_tiles_01/blue_floor_tiles_01_diff_1k.png",
+    "sha256": "D7D695EF9AF0FDFFFAFBABCE286D6EDFEFB5B3FC9B18D715C6E4172FE2F08566",
+    "group": "opaque"
+  },
+  {
+    "id": "ui_alpha_atlas",
+    "kind": "code-authored controlled RGBA UI atlas",
+    "license": "project-generated",
+    "generator": "Tools/Get-AstcBenchmarkTextures.ps1",
+    "sha256": "DF508F09E1E9104D9ACE921CA292C5B3C397D1A5727885BF1CEAD465B4857983",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_leaves",
+    "kind": "photographic RGB with code-authored independent alpha mask",
+    "license": "CC0 RGB; project-generated alpha",
+    "rgbSource": "brick_wall_001",
+    "generator": "Tools/Get-AstcBenchmarkTextures.ps1",
+    "sha256": "E287455828091913969A4BFA2BA2884221FF888879C211EBEE587796D58DE988",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_soft_smoke",
+    "kind": "photographic RGB with code-authored independent alpha mask",
+    "license": "CC0 RGB; project-generated alpha",
+    "rgbSource": "aerial_rocks_02",
+    "generator": "Tools/Get-AstcBenchmarkTextures.ps1",
+    "sha256": "283817301D23C334EF0CA6AFA2A03B23CB9A7A2ECE03B95744F821C2EA97E4DC",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_gradient",
+    "kind": "photographic RGB with code-authored independent alpha mask",
+    "license": "CC0 RGB; project-generated alpha",
+    "rgbSource": "green_metal_rust",
+    "generator": "Tools/Get-AstcBenchmarkTextures.ps1",
+    "sha256": "04F38D27C851899E6ACF846FB14FD7BEE698F4ED9379AB843B3F703EEA0E8C2B",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_grass",
+    "kind": "photographic RGB with code-authored independent alpha mask",
+    "license": "CC0 RGB; project-generated alpha",
+    "rgbSource": "grass_ground",
+    "generator": "Tools/Get-AstcBenchmarkTextures.ps1",
+    "sha256": "0CF081702907F1302880EB95D8A02ABEC36825A485119FDACDDCC187DA65EDB8",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_arm_00",
+    "kind": "official astcenc 5.7.0 RGBA test texture",
+    "license": "Apache-2.0",
+    "url": "https://raw.githubusercontent.com/ARM-software/astc-encoder/5.7.0/Test/Images/Small/LDR-RGBA/ldr-rgba-00.png",
+    "page": "https://github.com/ARM-software/astc-encoder/tree/5.7.0/Test/Images",
+    "sha256": "7F7515A18DED55B551E659453E81491419AA7927D98B45A121800739E0FFA326",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_arm_01",
+    "kind": "official astcenc 5.7.0 RGBA test texture",
+    "license": "Apache-2.0",
+    "url": "https://raw.githubusercontent.com/ARM-software/astc-encoder/5.7.0/Test/Images/Small/LDR-RGBA/ldr-rgba-01.png",
+    "page": "https://github.com/ARM-software/astc-encoder/tree/5.7.0/Test/Images",
+    "sha256": "495250C68C1676E3BD1D89BDB707FD24609CDD9E810E46D9DDCCCB752D6AE7F9",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_arm_02",
+    "kind": "official astcenc 5.7.0 RGBA test texture",
+    "license": "Apache-2.0",
+    "url": "https://raw.githubusercontent.com/ARM-software/astc-encoder/5.7.0/Test/Images/Small/LDR-RGBA/ldr-rgba-02.png",
+    "page": "https://github.com/ARM-software/astc-encoder/tree/5.7.0/Test/Images",
+    "sha256": "93C788987A98617D3656201F48F69363217F61D6FC569468F54FBB27C298D376",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_khronos_base",
+    "kind": "official astcenc 5.7.0 RGBA test texture",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/ARM-software/astc-encoder/5.7.0/Test/Images/Khronos/LDR-RGBA/ldr-rgba-base.png",
+    "page": "https://github.com/ARM-software/astc-encoder/tree/5.7.0/Test/Images",
+    "sha256": "BFABE406BF3E786F4077B1153E810EA7BF6C5EA046684781DFAF57CC7E3F790D",
+    "group": "alpha"
+  },
+  {
+    "id": "rgba_khronos_diffuse",
+    "kind": "official astcenc 5.7.0 RGBA test texture",
+    "license": "MIT",
+    "url": "https://raw.githubusercontent.com/ARM-software/astc-encoder/5.7.0/Test/Images/Khronos/LDR-RGBA/ldr-rgba-diffuse.png",
+    "page": "https://github.com/ARM-software/astc-encoder/tree/5.7.0/Test/Images",
+    "sha256": "84734C4235059825FF38A9356C8F824208E4556F711403EEC667BB3FB849BF69",
+    "group": "alpha"
+  },
+  {
+    "id": "ui_opaque_atlas",
+    "kind": "code-authored opaque UI atlas",
+    "license": "project-generated",
+    "generator": "Tools/Get-AstcBenchmarkTextures.ps1",
+    "sha256": "43403394A8651393E48F411EFF2CD960A642E46993B0045C587910476538F20A",
+    "group": "opaque"
+  }
+]

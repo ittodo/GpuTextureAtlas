@@ -1,0 +1,13 @@
+#pragma kernel Fill
+// Verification source only. It changes RGBA on the GPU each frame.
+RWTexture2D<float4> _Target;
+int2 _Size;
+uint _Frame;
+[numthreads(8,8,1)]
+void Fill(uint3 id:SV_DispatchThreadID)
+{
+    if(any(id.xy>=(uint2)_Size))return;
+    uint x=id.x,y=id.y,t=_Frame;
+    uint4 c=uint4((x*3+y+t*17)&255,(y*5+x/3+t*7)&255,((x^y)*7+t*13)&255,(x*11+y*3+t*23)&255);
+    _Target[id.xy]=c/255.0;
+}

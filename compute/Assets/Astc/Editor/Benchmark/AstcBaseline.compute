@@ -1,0 +1,206 @@
+#pragma kernel EncodeAstc
+#pragma target 5.0
+
+// ASTC LDR: one partition, RGBA direct endpoints, 4x4 single-plane QUANT_4 weights.
+// Block mode 0x042 leaves 79 endpoint bits. Eight QUANT_256 values use 64 bits.
+Texture2D<float4> _Source;
+RWStructuredBuffer<uint4> _Blocks;
+int2 _Size;
+uint _BlockSize;
+uint _BlocksX;
+uint _ColorTransform; // 0: none, 1: linear -> sRGB, 2: sRGB -> linear. Alpha is unchanged.
+
+float4 LoadColor(uint2 pixel)
+{
+    float4 color = saturate(_Source.Load(int3(min(pixel, (uint2)(_Size - 1)), 0)));
+    if (_ColorTransform == 1)
+        color.rgb = float3(color.r <= 0.0031308 ? color.r * 12.92 : 1.055 * pow(color.r, 1.0 / 2.4) - 0.055,
+                           color.g <= 0.0031308 ? color.g * 12.92 : 1.055 * pow(color.g, 1.0 / 2.4) - 0.055,
+                           color.b <= 0.0031308 ? color.b * 12.92 : 1.055 * pow(color.b, 1.0 / 2.4) - 0.055);
+    else if (_ColorTransform == 2)
+        color.rgb = float3(color.r <= 0.04045 ? color.r / 12.92 : pow((color.r + 0.055) / 1.055, 2.4),
+                           color.g <= 0.04045 ? color.g / 12.92 : pow((color.g + 0.055) / 1.055, 2.4),
+                           color.b <= 0.04045 ? color.b / 12.92 : pow((color.b + 0.055) / 1.055, 2.4));
+    return color;
+}
+
+float4 LoadGridColor(uint2 origin, uint2 grid)
+{
+    float2 position = (float2)grid * ((_BlockSize - 1) / 3.0);
+    uint2 lo = (uint2)floor(position);
+    uint2 hi = min(lo + 1, _BlockSize - 1);
+    float2 f = frac(position);
+    return lerp(lerp(LoadColor(origin + lo), LoadColor(origin + uint2(hi.x, lo.y)), f.x),
+                lerp(LoadColor(origin + uint2(lo.x, hi.y)), LoadColor(origin + hi), f.x), f.y);
+}
+
+uint QuantizeWeight(float value)
+{
+    // QUANT_4 expands to {0, 21, 43, 64}. These are the nearest-value thresholds.
+    return value < (10.5 / 64.0) ? 0 : value < 0.5 ? 1 : value < (53.5 / 64.0) ? 2 : 3;
+}
+
+uint UnquantizeWeight(uint index)
+{
+    return index == 0 ? 0 : index == 1 ? 21 : index == 2 ? 43 : 64;
+}
+
+uint InterpolateWeight(uint2 pixel, uint indices[16])
+{
+    // ASTC's integer decimation rule. Do not replace this with floating-point bilinear interpolation.
+    uint scale = (1024 + _BlockSize / 2) / (_BlockSize - 1);
+    uint2 position = (pixel * scale * 3 + 32) >> 6;
+    uint2 lo = min(position >> 4, 3);
+    uint2 hi = min(lo + 1, 3);
+    uint2 f = position & 15;
+    uint c11 = (f.x * f.y + 8) >> 4;
+    uint c01 = f.x - c11;
+    uint c10 = f.y - c11;
+    uint c00 = 16 - f.x - f.y + c11;
+    return (UnquantizeWeight(indices[lo.y * 4 + lo.x]) * c00 +
+            UnquantizeWeight(indices[lo.y * 4 + hi.x]) * c01 +
+            UnquantizeWeight(indices[hi.y * 4 + lo.x]) * c10 +
+            UnquantizeWeight(indices[hi.y * 4 + hi.x]) * c11 + 8) >> 4;
+}
+
+void QuantizeEndpoints(inout float4 low, inout float4 high)
+{
+    low = floor(saturate(low) * 255.0 + 0.5) / 255.0;
+    high = floor(saturate(high) * 255.0 + 0.5) / 255.0;
+    // RGBA direct mode applies blue uncontraction when the first RGB sum is larger.
+    if (dot(low.rgb, 1.0) > dot(high.rgb, 1.0))
+    {
+        float4 swap = low;
+        low = high;
+        high = swap;
+    }
+}
+
+void WriteEndpointByte(inout uint4 block, uint value, uint offset)
+{
+    uint word = offset >> 5;
+    uint shift = offset & 31;
+    block[word] |= value << shift;
+    if (shift > 24) block[word + 1] |= value >> (32 - shift);
+}
+
+uint4 ConstantBlock(float4 mean)
+{
+    uint4 color = (uint4)floor(mean * 65535.0 + 0.5);
+    return uint4(0xFFFFFDFC, 0xFFFFFFFF, color.r | (color.g << 16), color.b | (color.a << 16));
+}
+
+[numthreads(8, 8, 1)]
+void EncodeAstc(uint3 threadId : SV_DispatchThreadID)
+{
+    uint2 blockCount = ((uint2)_Size + _BlockSize - 1) / _BlockSize;
+    if (any(threadId.xy >= blockCount)) return;
+    uint2 origin = threadId.xy * _BlockSize;
+    uint outputIndex = threadId.y * _BlocksX + threadId.x;
+
+    float4 sum = 0, minColor = 1, maxColor = 0;
+    float4 covarianceR = 0, covarianceG = 0, covarianceB = 0, covarianceA = 0;
+    [loop] for (uint y = 0; y < _BlockSize; ++y)
+    [loop] for (uint x = 0; x < _BlockSize; ++x)
+    {
+        float4 color = LoadColor(origin + uint2(x, y));
+        sum += color;
+        minColor = min(minColor, color);
+        maxColor = max(maxColor, color);
+        covarianceR += color.r * color;
+        covarianceG += color.g * color;
+        covarianceB += color.b * color;
+        covarianceA += color.a * color;
+    }
+    float count = _BlockSize * _BlockSize;
+    float4 mean = sum / count;
+    if (all(maxColor - minColor < 0.000001))
+    {
+        _Blocks[outputIndex] = ConstantBlock(mean);
+        return;
+    }
+
+    covarianceR -= mean.r * sum;
+    covarianceG -= mean.g * sum;
+    covarianceB -= mean.b * sum;
+    covarianceA -= mean.a * sum;
+    float4 variance = float4(covarianceR.r, covarianceG.g, covarianceB.b, covarianceA.a);
+    float largest = max(max(variance.r, variance.g), max(variance.b, variance.a));
+    float4 axis = variance.r == largest ? float4(1, 0, 0, 0) :
+                  variance.g == largest ? float4(0, 1, 0, 0) :
+                  variance.b == largest ? float4(0, 0, 1, 0) : float4(0, 0, 0, 1);
+    [unroll] for (uint iteration = 0; iteration < 6; ++iteration)
+    {
+        float4 next = float4(dot(covarianceR, axis), dot(covarianceG, axis),
+                             dot(covarianceB, axis), dot(covarianceA, axis));
+        axis = next * rsqrt(max(dot(next, next), 1e-20));
+    }
+
+    float minProjection = 1e20, maxProjection = -1e20;
+    [loop] for (uint py = 0; py < _BlockSize; ++py)
+    [loop] for (uint px = 0; px < _BlockSize; ++px)
+    {
+        float projection = dot(LoadColor(origin + uint2(px, py)) - mean, axis);
+        minProjection = min(minProjection, projection);
+        maxProjection = max(maxProjection, projection);
+    }
+    float4 low = mean + axis * minProjection;
+    float4 high = mean + axis * maxProjection;
+    float4 gridColors[16];
+    uint indices[16];
+    [unroll] for (uint grid = 0; grid < 16; ++grid)
+        gridColors[grid] = LoadGridColor(origin, uint2(grid & 3, grid >> 2));
+
+    // Alternate nearest weights and least-squares endpoint fitting.
+    [loop] for (uint refine = 0; refine < 3; ++refine)
+    {
+        QuantizeEndpoints(low, high);
+        float4 delta = high - low;
+        float inverseLength = rcp(max(dot(delta, delta), 1e-12));
+        [unroll] for (uint i = 0; i < 16; ++i)
+            indices[i] = QuantizeWeight(saturate(dot(gridColors[i] - low, delta) * inverseLength));
+        float sumW = 0, sumWW = 0;
+        float4 sumWC = 0;
+        [loop] for (uint fy = 0; fy < _BlockSize; ++fy)
+        [loop] for (uint fx = 0; fx < _BlockSize; ++fx)
+        {
+            float weight = InterpolateWeight(uint2(fx, fy), indices) / 64.0;
+            sumW += weight;
+            sumWW += weight * weight;
+            sumWC += weight * LoadColor(origin + uint2(fx, fy));
+        }
+        if (refine == 2)
+        {
+            float lineError = count * dot(low - mean, low - mean) +
+                2 * sumW * dot(low, delta) + sumWW * dot(delta, delta) - 2 * dot(delta, sumWC);
+            // This is (line SSE - mean SSE). A constant block can fit noisy tiles better.
+            if (lineError > 0)
+            {
+                _Blocks[outputIndex] = ConstantBlock(mean);
+                return;
+            }
+            break;
+        }
+        float aa = count - 2 * sumW + sumWW;
+        float ab = sumW - sumWW;
+        float determinant = aa * sumWW - ab * ab;
+        if (determinant > 1e-6)
+        {
+            low = ((sum - sumWC) * sumWW - sumWC * ab) / determinant;
+            high = (sumWC * aa - (sum - sumWC) * ab) / determinant;
+        }
+    }
+
+    uint4 packed = uint4(0x00018042, 0, 0, 0); // 0x042 mode, one partition, endpoint mode 12.
+    uint4 endpoint0 = (uint4)floor(low * 255.0 + 0.5);
+    uint4 endpoint1 = (uint4)floor(high * 255.0 + 0.5);
+    [unroll] for (uint channel = 0; channel < 4; ++channel)
+    {
+        WriteEndpointByte(packed, endpoint0[channel], 17 + channel * 16);
+        WriteEndpointByte(packed, endpoint1[channel], 25 + channel * 16);
+    }
+    uint weightBits = 0;
+    [unroll] for (uint w = 0; w < 16; ++w) weightBits |= indices[w] << (2 * w);
+    packed.w = reversebits(weightBits);
+    _Blocks[outputIndex] = packed;
+}

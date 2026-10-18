@@ -1,0 +1,13 @@
+#pragma kernel DecodeHardware
+#pragma target 5.0
+// Verification/benchmark readback of the platform's BC7 texture decoder.
+Texture2D<float4> _Source;
+RWStructuredBuffer<uint> _Pixels;
+int2 _Size;
+[numthreads(8,8,1)]
+void DecodeHardware(uint3 id:SV_DispatchThreadID)
+{
+    if(any(id.xy>=(uint2)_Size))return;
+    uint4 c=(uint4)floor(saturate(_Source.Load(int3(id.xy,0)))*255+.5);
+    _Pixels[id.y*_Size.x+id.x]=c.r|(c.g<<8)|(c.b<<16)|(c.a<<24);
+}
