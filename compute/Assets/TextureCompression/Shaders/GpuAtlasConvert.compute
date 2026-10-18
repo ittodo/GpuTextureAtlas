@@ -1,0 +1,20 @@
+#pragma kernel ConvertAndPad
+#pragma target 5.0
+// Sampling an sRGB resource returns linear RGB. The encoder applies the target transfer once.
+Texture2D<float4> _Source;
+RWTexture2D<float4> _Output;
+int2 _InputSize, _OutputSize;
+int _SourceMip;
+[numthreads(8,8,1)]
+void ConvertAndPad(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint2)_OutputSize)) return;
+    uint2 p = min(id.xy, (uint2)(_InputSize - 1));
+    float4 c = saturate(_Source.Load(int3(p, _SourceMip)));
+    // Find the lower half value, then round to nearest-even explicitly on every backend.
+    uint4 h = f32tof16(c);
+    h -= (uint4)(f16tof32(h) > c);
+    float4 midpoint = (f16tof32(h) + f16tof32(h + 1)) * .5;
+    h += (uint4)((c > midpoint) | ((c == midpoint) & ((h & 1) != 0)));
+    _Output[id.xy] = f16tof32(h);
+}

@@ -17,6 +17,14 @@ static IUnityGraphicsVulkan* vulkan;
 static VkDevice cachedDevice;
 static PFN_vkCmdCopyBufferToImage copyBufferToImage;
 
+struct AstcCopyPacket
+{
+    void* source; void* buffer; void* destination;
+    int width, height, mip, blockSize, rowBlocks, x, y, status, events;
+};
+static_assert(sizeof(AstcCopyPacket) == 64, "ASTC copy ABI differs");
+static_assert(offsetof(AstcCopyPacket, status) == 52, "ASTC copy status differs");
+
 // Freestanding Android build: provide compiler-emitted memory helpers without a C++ runtime.
 extern "C" __attribute__((visibility("hidden"))) void* memset(void* destination, int value, size_t count)
 {
@@ -89,6 +97,56 @@ static void UNITY_INTERFACE_API Upload(int eventId, void* data)
     __atomic_add_fetch(&packet->recordedEvents, 1, __ATOMIC_RELEASE);
     Status(packet, 1); // Recorded, not a claim that GPU execution has completed.
 }
+static void UNITY_INTERFACE_API CopyTextureBlocks(int, void* data)
+{
+    auto* p = static_cast<AstcCopyPacket*>(data);
+    if (!p) return;
+    auto status = [p](int value) { __atomic_store_n(&p->status, value, __ATOMIC_RELEASE); };
+    if (!graphics || !vulkan || graphics->GetRenderer() != kUnityGfxRendererVulkan) { status(-1); return; }
+    const int block = p->blockSize;
+    if (p->width < 1 || p->height < 1 || p->mip < 0 || p->mip > 30 || Format(block) == VK_FORMAT_UNDEFINED ||
+        p->x < 0 || p->y < 0 || p->x % block || p->y % block || p->rowBlocks % 16 ||
+        p->rowBlocks < (p->width + block - 1) / block) { status(-2); return; }
+    const auto instance = vulkan->Instance();
+    auto getDeviceProc = reinterpret_cast<PFN_vkGetDeviceProcAddr>(instance.getInstanceProcAddr(instance.instance, "vkGetDeviceProcAddr"));
+    if (!getDeviceProc) { status(-3); return; }
+    auto read = reinterpret_cast<PFN_vkCmdCopyImageToBuffer>(getDeviceProc(instance.device, "vkCmdCopyImageToBuffer"));
+    auto write = reinterpret_cast<PFN_vkCmdCopyBufferToImage>(getDeviceProc(instance.device, "vkCmdCopyBufferToImage"));
+    if (!read || !write) { status(-3); return; }
+    vulkan->EnsureOutsideRenderPass();
+    UnityVulkanImage source = {}, target = {}; UnityVulkanBuffer temporary = {};
+    VkImageSubresource sourceMip = { VK_IMAGE_ASPECT_COLOR_BIT, static_cast<uint32_t>(p->mip), 0 };
+    VkImageSubresource targetMip = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0 };
+    if (!vulkan->AccessTexture(p->source, &sourceMip, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_READ_BIT, kUnityVulkanResourceAccess_PipelineBarrier, &source) ||
+        !vulkan->AccessBuffer(p->buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT,
+        kUnityVulkanResourceAccess_PipelineBarrier, &temporary) ||
+        !vulkan->AccessTexture(p->destination, &targetMip, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_WRITE_BIT, kUnityVulkanResourceAccess_PipelineBarrier, &target)) { status(-4); return; }
+    const uint32_t columns = (p->width + block - 1) / block, rows = (p->height + block - 1) / block;
+    const auto expected = Format(block);
+    if (source.format != target.format || (source.format != expected && source.format != static_cast<VkFormat>(expected + 1)) ||
+        !(source.usage & VK_IMAGE_USAGE_TRANSFER_SRC_BIT) || !(target.usage & VK_IMAGE_USAGE_TRANSFER_DST_BIT) ||
+        !(temporary.usage & VK_BUFFER_USAGE_TRANSFER_SRC_BIT) || !(temporary.usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT) ||
+        temporary.sizeInBytes < static_cast<size_t>(p->rowBlocks) * 16 * rows ||
+        static_cast<uint32_t>(p->x) + columns * block > target.extent.width || static_cast<uint32_t>(p->y) + rows * block > target.extent.height)
+    { status(-5); return; }
+    UnityVulkanRecordingState state = {};
+    if (!vulkan->CommandRecordingState(&state, kUnityVulkanGraphicsQueueAccess_DontCare)) { status(-6); return; }
+    VkBufferImageCopy region = {};
+    region.bufferRowLength = p->rowBlocks * block;
+    region.imageSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, static_cast<uint32_t>(p->mip), 0, 1 };
+    region.imageExtent = { static_cast<uint32_t>(p->width), static_cast<uint32_t>(p->height), 1 };
+    // The source's legal edge extent copies the full encoded edge blocks into the buffer.
+    read(state.commandBuffer, source.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, temporary.buffer, 1, &region);
+    if (!vulkan->AccessBuffer(p->buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_ACCESS_TRANSFER_READ_BIT,
+        kUnityVulkanResourceAccess_PipelineBarrier, &temporary)) { status(-4); return; }
+    region.imageSubresource.mipLevel = 0;
+    region.imageOffset = { p->x, p->y, 0 };
+    region.imageExtent = { columns * static_cast<uint32_t>(block), rows * static_cast<uint32_t>(block), 1 };
+    write(state.commandBuffer, temporary.buffer, target.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+    __atomic_add_fetch(&p->events, 1, __ATOMIC_RELEASE); status(1);
+}
 extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API UnityPluginLoad(IUnityInterfaces* interfaces)
 {
     graphics = interfaces->Get<IUnityGraphics>();
@@ -101,6 +159,7 @@ extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API UnityPluginLoad(IUnit
         configuration.graphicsQueueAccess = kUnityVulkanGraphicsQueueAccess_DontCare;
         configuration.flags = kUnityVulkanEventConfigFlag_EnsurePreviousFrameSubmission;
         vulkan->ConfigureEvent(0, &configuration);
+        vulkan->ConfigureEvent(1, &configuration);
     }
 }
 extern "C" UNITY_INTERFACE_EXPORT void UNITY_INTERFACE_API UnityPluginUnload() { graphics = nullptr; vulkan = nullptr; }
@@ -108,3 +167,6 @@ extern "C" UNITY_INTERFACE_EXPORT int AstcGpuUploadInitialize() { return graphic
 extern "C" UNITY_INTERFACE_EXPORT int AstcGpuUploadAbiVersion() { return 1; }
 extern "C" UNITY_INTERFACE_EXPORT UnityRenderingEventAndData AstcGpuUploadEvent() { return Upload; }
 extern "C" UNITY_INTERFACE_EXPORT int AstcGpuUploadStatus(void* data) { return __atomic_load_n(&static_cast<AstcUploadPacket*>(data)->status, __ATOMIC_ACQUIRE); }
+extern "C" UNITY_INTERFACE_EXPORT int AstcGpuCopyTextureAbiVersion() { return 1; }
+extern "C" UNITY_INTERFACE_EXPORT UnityRenderingEventAndData AstcGpuCopyTextureEvent() { return CopyTextureBlocks; }
+extern "C" UNITY_INTERFACE_EXPORT int AstcGpuCopyTextureStatus(void* data) { return __atomic_load_n(&static_cast<AstcCopyPacket*>(data)->status, __ATOMIC_ACQUIRE); }

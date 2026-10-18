@@ -11,6 +11,13 @@ struct AstcUploadPacket
     int status, recordedEvents;
 };
 static_assert(sizeof(AstcUploadPacket) == 40, "Managed/native upload ABI differs");
+struct AstcCopyPacket
+{
+    void* source; void* buffer; void* destination;
+    int width, height, mip, blockSize, rowBlocks, x, y, status, events;
+};
+static_assert(sizeof(AstcCopyPacket) == 64, "ASTC copy ABI differs");
+static_assert(offsetof(AstcCopyPacket, status) == 52, "ASTC copy status differs");
 static IUnityGraphicsMetalV2* metal;
 static bool registered;
 static MTLPixelFormat Format(int block)
@@ -59,6 +66,37 @@ static void UNITY_INTERFACE_API Upload(int eventId, void* data)
     Status(packet, 1);
 }
 static void UNITY_INTERFACE_API Load(IUnityInterfaces* interfaces) { metal = interfaces->Get<IUnityGraphicsMetalV2>(); }
+static void UNITY_INTERFACE_API CopyTextureBlocks(int, void* data)
+{
+    auto* p = static_cast<AstcCopyPacket*>(data); if (!p) return;
+    auto status = [p](int value) { __atomic_store_n(&p->status, value, __ATOMIC_RELEASE); };
+    const int block = p->blockSize;
+    if (!metal || p->width < 1 || p->height < 1 || p->mip < 0 || p->mip > 30 || Format(block) == MTLPixelFormatInvalid ||
+        p->x < 0 || p->y < 0 || p->x % block || p->y % block || p->rowBlocks % 16 ||
+        p->rowBlocks < (p->width + block - 1) / block) { status(-1); return; }
+    id<MTLTexture> source = (__bridge id<MTLTexture>)p->source;
+    id<MTLTexture> destination = (__bridge id<MTLTexture>)p->destination;
+    id<MTLBuffer> buffer = (__bridge id<MTLBuffer>)p->buffer;
+    NSUInteger rowBytes = static_cast<NSUInteger>(p->rowBlocks) * 16;
+    NSUInteger rows = (p->height + block - 1) / block, columns = (p->width + block - 1) / block;
+    MTLPixelFormat expected = Format(block);
+    if (!source || !destination || !buffer || source.pixelFormat != destination.pixelFormat ||
+        (source.pixelFormat != expected && source.pixelFormat != static_cast<MTLPixelFormat>(expected - 18)) ||
+        p->mip >= source.mipmapLevelCount || buffer.length < rowBytes * rows ||
+        p->x + columns * block > destination.width || p->y + rows * block > destination.height) { status(-2); return; }
+    metal->EndCurrentCommandEncoder();
+    id<MTLCommandBuffer> commands = metal->CurrentCommandBuffer();
+    if (!commands) { status(-3); return; }
+    id<MTLBlitCommandEncoder> blit = [commands blitCommandEncoder];
+    if (!blit) { status(-3); return; }
+    [blit copyFromTexture:source sourceSlice:0 sourceLevel:p->mip sourceOrigin:MTLOriginMake(0, 0, 0)
+        sourceSize:MTLSizeMake(p->width, p->height, 1) toBuffer:buffer destinationOffset:0
+        destinationBytesPerRow:rowBytes destinationBytesPerImage:rowBytes * rows];
+    [blit copyFromBuffer:buffer sourceOffset:0 sourceBytesPerRow:rowBytes sourceBytesPerImage:rowBytes * rows
+        sourceSize:MTLSizeMake(columns * block, rows * block, 1) toTexture:destination destinationSlice:0 destinationLevel:0
+        destinationOrigin:MTLOriginMake(p->x, p->y, 0)];
+    [blit endEncoding]; __atomic_add_fetch(&p->events, 1, __ATOMIC_RELEASE); status(1);
+}
 static void UNITY_INTERFACE_API Unload() { metal = nullptr; }
 extern "C" void UnityRegisterRenderingPluginV5(void (UNITY_INTERFACE_API*)(IUnityInterfaces*), void (UNITY_INTERFACE_API*)());
 extern "C" UNITY_INTERFACE_EXPORT int AstcGpuUploadInitialize()
@@ -69,3 +107,6 @@ extern "C" UNITY_INTERFACE_EXPORT int AstcGpuUploadInitialize()
 extern "C" UNITY_INTERFACE_EXPORT int AstcGpuUploadAbiVersion() { return 1; }
 extern "C" UNITY_INTERFACE_EXPORT UnityRenderingEventAndData AstcGpuUploadEvent() { return Upload; }
 extern "C" UNITY_INTERFACE_EXPORT int AstcGpuUploadStatus(void* data) { return __atomic_load_n(&static_cast<AstcUploadPacket*>(data)->status, __ATOMIC_ACQUIRE); }
+extern "C" UNITY_INTERFACE_EXPORT int AstcGpuCopyTextureAbiVersion() { return 1; }
+extern "C" UNITY_INTERFACE_EXPORT UnityRenderingEventAndData AstcGpuCopyTextureEvent() { return CopyTextureBlocks; }
+extern "C" UNITY_INTERFACE_EXPORT int AstcGpuCopyTextureStatus(void* data) { return __atomic_load_n(&static_cast<AstcCopyPacket*>(data)->status, __ATOMIC_ACQUIRE); }

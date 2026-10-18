@@ -1,0 +1,25 @@
+#pragma kernel ReadLinear
+#pragma kernel SampleEntry
+#pragma target 5.0
+#include "../Runtime/CompressedAtlasSampling.hlsl"
+Texture2D<float4> _Source;
+SamplerState sampler_LinearClamp;
+RWStructuredBuffer<float4> _Linear;
+RWStructuredBuffer<uint> _Pixels;
+int2 _Size;
+int _Mip;
+float4 _ScaleOffset, _Clamp;
+[numthreads(8,8,1)]
+void ReadLinear(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint2)_Size)) return;
+    _Linear[id.y * _Size.x + id.x] = _Source.Load(int3(id.xy, _Mip));
+}
+[numthreads(8,8,1)]
+void SampleEntry(uint3 id : SV_DispatchThreadID)
+{
+    if (any(id.xy >= (uint2)(_Size + 2))) return;
+    float2 uv = CompressedAtlasUv((float2(id.xy) - .5) / _Size, _ScaleOffset, _Clamp);
+    uint4 c = (uint4)floor(saturate(_Source.SampleLevel(sampler_LinearClamp, uv, 0)) * 255 + .5);
+    _Pixels[id.y * (_Size.x + 2) + id.x] = c.r | (c.g << 8) | (c.b << 16) | (c.a << 24);
+}
