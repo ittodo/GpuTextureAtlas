@@ -28,7 +28,7 @@ namespace UnityCompute.TextureCompression.Editor
         public static async void RunBatch()
         {
             Directory.CreateDirectory(Root);
-            try { string blocks = CompressedAtlasValidation.RunBlocks(); string gpu = await Run(); string compilers = RunCompilers() + "\n" + GpuAtlasRendererValidation.RunCompilers(Path.Combine(Root, "renderer"));
+            try { string blocks = CompressedAtlasValidation.RunBlocks(); await GpuAtlasCopyValidation.Run(); string gpu = await Run(); string compilers = RunCompilers() + "\n" + GpuAtlasRendererValidation.RunCompilers(Path.Combine(Root, "renderer"));
                 File.WriteAllText(Path.Combine(Root, "batch-result.txt"), blocks + "\n" + gpu + "\n" + compilers); EditorApplication.Exit(0); }
             catch (Exception error) { File.WriteAllText(Path.Combine(Root, "batch-result.txt"), error.ToString()); Debug.LogException(error); EditorApplication.Exit(1); }
         }

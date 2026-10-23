@@ -71,7 +71,11 @@ namespace UnityCompute.TextureCompression
                 if (size == batch.sizes[index]) { readMip = batch.mip; return batch.resources[index]; }
                 if (!paddedCopies.TryGetValue(size, out var padded))
                 { padded = NewTexture(size.x, size.y, GraphicsFormat, FilterMode.Point); paddedCopies.Add(size, padded); }
-                edgeCopies.Add(new GpuAtlasBlockCopy(batch.textures[index], padded, batch.sizes[index].x, batch.sizes[index].y, batch.mip, batch.block, 0, 0));
+                // Region copies require aligned logical extents. A whole-mip copy preserves the
+                // same physical block grid, including partial edge blocks, in the padded texture.
+                // Keep this overload: using the region overload with rounded extents exceeds the source bounds.
+                Graphics.CopyTexture(batch.resources[index], 0, batch.mip, padded.graphicsTexture, 0, 0);
+                CopyCount++;
                 return padded.graphicsTexture;
             }
             if (!conversions.TryGetValue(size, out var item))

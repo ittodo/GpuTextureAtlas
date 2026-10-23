@@ -49,14 +49,21 @@ namespace UnityCompute.TextureCompression.Editor
             for (int y = 0; y < r.height; y++) Array.Copy(full, (r.y + y) * atlas.Width + r.x, result.pixels, y * r.width, r.width);
             return result;
         }
-        public static async Task<string> Run(string bundlePath, ComputeShader encoder, ComputeShader convert, ComputeShader decoder, string output)
+        public static async Task<string> Run(string bundlePath, ComputeShader encoder, ComputeShader convert, ComputeShader decoder, string output,
+            TextureFormat targetFormat = TextureFormat.BC7)
         {
             Directory.CreateDirectory(output); File.WriteAllText(Path.Combine(output, "environment.txt"), "");
             var report = new Report(); AssetBundle bundle = null; GpuTextureAtlas atlas = null;
+            var pipeline = GraphicsSettings.currentRenderPipeline as UniversalRenderPipelineAsset;
+            float previousRenderScale = pipeline != null ? pipeline.renderScale : 1;
             GameObject cameraObject = null, mainObject = null, otherObject = null, maskObject = null; RenderTexture target = null;
             Texture2D maskTexture = null; Sprite maskSprite = null;
             try
             {
+                // The CPU reference uses the target pixel grid. Upscaling adds a second filter.
+                // Keep this setting local to verification and restore it even when a check fails.
+                if (pipeline != null) pipeline.renderScale = 1;
+                File.AppendAllText(Path.Combine(output, "environment.txt"), $"Render scale: {previousRenderScale} -> 1 for pixel comparison\n");
                 cameraObject = new GameObject("Atlas renderer verification camera"); var camera = cameraObject.AddComponent<Camera>();
                 camera.enabled = false; camera.orthographic = true; camera.orthographicSize = .5f; camera.aspect = 2;
                 camera.transform.position = new Vector3(0, 0, -10); camera.clearFlags = CameraClearFlags.SolidColor; camera.backgroundColor = Color.clear;
@@ -88,7 +95,7 @@ namespace UnityCompute.TextureCompression.Editor
                     var inputs = bundle.LoadAllAssets<Texture2D>(); string sourcePrefix = srgb ? "srgb-" : "linear-";
                     string prefix = (rendererIndex == 0 ? "forward-" : "2d-") + sourcePrefix;
                     var seed = inputs.Single(t => t.name == sourcePrefix + "0");
-                    atlas = await GpuTextureAtlas.PackTexturesAsync(new[] { seed }, TextureFormat.BC7, srgb, maxSize: 1024, paddingBlocks: 1, filterMode: FilterMode.Bilinear);
+                    atlas = await GpuTextureAtlas.PackTexturesAsync(new[] { seed }, targetFormat, srgb, maxSize: 1024, paddingBlocks: 1, filterMode: FilterMode.Bilinear);
                     var images = new Dictionary<int, Image> { { 0, Capture(atlas, 0, decoder) } };
                     main.Bind(atlas, 0); other.Bind(atlas, 0);
                     Require(ReferenceEquals(main.Renderer.sharedMaterial, other.Renderer.sharedMaterial) && ReferenceEquals(main.Renderer.GetComponent<MeshFilter>().sharedMesh, other.Renderer.GetComponent<MeshFilter>().sharedMesh), "Renderers did not share their material and quad.");
@@ -210,6 +217,7 @@ namespace UnityCompute.TextureCompression.Editor
             catch (Exception error) { report.error = error.ToString(); throw; }
             finally
             {
+                if (pipeline != null) pipeline.renderScale = previousRenderScale;
                 if (bundle != null) bundle.Unload(true); atlas?.Dispose(); Destroy(mainObject); Destroy(otherObject); Destroy(maskObject); Destroy(maskSprite); Destroy(maskTexture); Destroy(cameraObject);
                 if (target != null) { target.Release(); Destroy(target); }
                 if (Application.isPlaying) { int frame = Time.frameCount; while (frame == Time.frameCount) await Task.Yield(); }

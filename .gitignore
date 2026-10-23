@@ -8,6 +8,7 @@ compute/[Uu]ser[Ss]ettings/
 compute/[Bb]uild/
 compute/[Bb]uilds/
 compute/.vs/
+compute/.utmp/
 compute/*.csproj
 compute/*.sln
 compute/*.slnx

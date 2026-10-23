@@ -1,16 +1,29 @@
-param([string]$UnityCli = 'C:\Program Files\Unity Hub\resources\unity.exe', [switch]$BatchMode, [string]$UnityEditor = '', [switch]$DebugGpu)
+param([string]$UnityCli = 'C:\Program Files\Unity Hub\resources\unity.exe', [switch]$BatchMode, [string]$UnityEditor = '', [switch]$DebugGpu,
+    [switch]$CopyOnly, [ValidateSet('Direct3D12', 'Vulkan')][string]$GraphicsApi = 'Direct3D12')
 $ErrorActionPreference = 'Stop'
+if (($CopyOnly -or $GraphicsApi -ne 'Direct3D12') -and -not $BatchMode) { throw '-CopyOnly and -GraphicsApi require -BatchMode.' }
+if ($GraphicsApi -ne 'Direct3D12' -and -not $CopyOnly) { throw 'Mixed-format verification requires Direct3D12. Use -CopyOnly for Vulkan.' }
+if ($DebugGpu -and $GraphicsApi -ne 'Direct3D12') { throw '-DebugGpu currently requires Direct3D12.' }
 $project = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../compute'))
 $output = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../.validation/gpu-atlas'))
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 if ($BatchMode) {
     if (-not $UnityEditor) { $UnityEditor = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../.tooling/Unity/6000.7.0b5/Editor/Unity.exe')) }
-    $result = Join-Path $output 'batch-result.txt'; if (Test-Path -LiteralPath $result) { Remove-Item -LiteralPath $result }
-    $log = Join-Path $output 'batch-editor.log'
-    $arguments = '-batchmode -force-d3d12 -projectPath "' + $project + '" -executeMethod UnityCompute.TextureCompression.Editor.GpuAtlasValidation.RunBatch -logFile "' + $log + '"'
+    $copyResult = Join-Path $output "copytexture/$GraphicsApi/result.json"
+    $result = if ($CopyOnly) { $copyResult } else { Join-Path $output 'batch-result.txt' }
+    if (Test-Path -LiteralPath $result) { Remove-Item -LiteralPath $result }
+    if (-not $CopyOnly -and (Test-Path -LiteralPath $copyResult)) { Remove-Item -LiteralPath $copyResult }
+    $log = Join-Path $output $(if ($CopyOnly) { "copytexture-$GraphicsApi.log" } else { 'batch-editor.log' })
+    $backend = if ($GraphicsApi -eq 'Vulkan') { '-force-vulkan' } else { '-force-d3d12' }
+    $entry = if ($CopyOnly) { 'GpuAtlasCopyValidation' } else { 'GpuAtlasValidation' }
+    $arguments = '-batchmode ' + $backend + ' -projectPath "' + $project + '" -executeMethod UnityCompute.TextureCompression.Editor.' + $entry + '.RunBatch -logFile "' + $log + '"'
     if ($DebugGpu) { $arguments += ' -force-d3d12-debug' }
     $process = Start-Process -FilePath $UnityEditor -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
     if ($process.ExitCode -ne 0 -or -not (Test-Path -LiteralPath $result)) { throw "GPU atlas verification failed (exit $($process.ExitCode)). See $log" }
+    $copy = Get-Content -LiteralPath $copyResult -Raw | ConvertFrom-Json
+    if (-not $copy.passed -or $copy.backend -ne $GraphicsApi) { throw 'CopyTexture verification failed or used a different graphics API.' }
+    "PASS: CopyTexture $($copy.backend), $($copy.cases) cases, $($copy.partialInputs) partial-block inputs, $($copy.pixels) exact pixels, $($copy.additions) additions, $($copy.repacks) repacks."
+    if ($CopyOnly) { return }
     Get-Content -LiteralPath $result
     $addition = Get-Content -LiteralPath (Join-Path $output 'addition.json') -Raw | ConvertFrom-Json
     if (-not $addition.passed) { throw 'GPU atlas additions failed.' }

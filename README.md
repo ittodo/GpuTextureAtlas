@@ -27,12 +27,12 @@ GPU에 로드한 Texture2D를 ASTC·BC7 아틀라스로 묶습니다. Read/Write
 
 ## 플랫폼과 검증 상태
 
-다음 표는 압축 텍스처의 GPU 출력 브리지와 부분 블록 복사 경로를 기준으로 합니다.
+같은 형식·색 공간의 아틀라스 패킹은 `Graphics.CopyTexture`를 사용합니다. 부분 블록도 포함하며 자체 네이티브 브리지를 호출하지 않습니다. 대상 GPU의 압축 형식 샘플링·텍스처 복사·graphics fence 지원이 필요합니다. 다음 표는 형식 변환과 GPU 인코더 출력에 필요한 네이티브 브리지의 범위입니다.
 
 | 플랫폼 | 그래픽 API | 목표 압축 형식 | 현재 검증 |
 |---|---|---|---|
 | Windows x64 | Direct3D12 | BC7 | Editor·Windows Player의 GPU 압축·패킹·편집·렌더링 검산 통과 |
-| Android ARM64 | Vulkan | ASTC | 셰이더 코드 생성·네이티브 컴파일·링크 확인. 실기기 실행 미검증 |
+| Android ARM64 | Vulkan | ASTC | SM-A426N / Adreno 619에서 복사·편집·GPU 변환·9-slice·SpriteMask 검산 통과 |
 | iOS ARM64 | Metal | ASTC | 셰이더 코드 생성 확인. Xcode 네이티브 빌드·실기기 실행 미검증 |
 
 Windows에서도 ASTC 블록을 GPU로 인코딩하고 `.astc` 파일로 내보내는 경로를 검산했습니다. ASTC 텍스처의 실시간 샘플링·GPU 출력은 지원 기기에서 사용합니다. 모바일의 실행 시간·발열·연속 압축 안정성은 아직 측정하지 않았습니다.
@@ -70,7 +70,7 @@ Windows의 최근 아틀라스 렌더러 검산은 Editor·Player 각각 122프�
 | Windows x64 / D3D12 | `TextureFormat.BC7` | `Assets/Bc7/Shaders/Bc7Encoder.compute` | `Assets/TextureCompression/Shaders/GpuAtlasConvert.compute` |
 | Android ARM64 / Vulkan, iOS ARM64 / Metal | `TextureFormat.ASTC_4x4` 등 | `Assets/Astc/Shaders/AstcEncoder.compute` | 위와 같음 |
 
-모바일에는 대상 기기의 ASTC 샘플링·Compute 지원과 네이티브 플러그인이 필요합니다. 세부 지원 범위는 아래 GPU 경로 설명과 검산 결과를 따릅니다. 투명 UI의 경계 품질은 ASTC 4×4부터 확인합니다. 임포트한 Texture2D 전체가 입력 한 장입니다. Sprite Mode Multiple의 서브 Sprite 영역을 자동으로 추출하지 않습니다.
+모바일에서 같은 ASTC 형식·색 공간을 복사할 때는 Compute 셰이더와 자체 네이티브 브리지를 호출하지 않습니다. 다른 형식·색 공간을 변환할 때는 대상 기기의 Compute 지원과 네이티브 인코더 출력 브리지가 필요합니다. 세부 지원 범위는 아래 GPU 경로 설명과 검산 결과를 따릅니다. 투명 UI의 경계 품질은 ASTC 4×4부터 확인합니다. 임포트한 Texture2D 전체가 입력 한 장입니다. Sprite Mode Multiple의 서브 Sprite 영역을 자동으로 추출하지 않습니다.
 
 ### GPU 경로 — Read/Write 끄기
 
@@ -95,11 +95,21 @@ Vector2 atlasUv = entry.MapUv(new Vector2(0.5f, 0.5f));
 
 `bc7EncoderShader`에는 `Bc7Encoder.compute`를 지정합니다. 모바일 ASTC 목표에는 `AstcEncoder.compute`를 지정합니다. `atlasConversionShader`에는 `GpuAtlasConvert.compute`를 지정합니다. Inspector 참조 등으로 셰이더가 Player 빌드에 포함되게 하십시오. 입력이 전부 목표 형식·색 공간이면 두 셰이더 참조가 없어도 됩니다. 품질 설정은 변환하는 입력에만 적용합니다. 같은 입력은 HighQuality를 선택해도 재압축하지 않습니다.
 
+같은 형식만 패킹할 때는 다음과 같이 호출합니다. Read/Write를 꺼도 됩니다. 추가·확장·재배치에도 `CopyTexture`를 사용합니다. ASTC 입력에는 해당 `TextureFormat.ASTC_*`와 색 공간을 지정합니다. 셰이더 없이 다른 형식·색 공간을 전달하면 입력 검사에서 오류를 반환합니다.
+
+```csharp
+GpuTextureAtlas atlas = await GpuTextureAtlas.PackTexturesAsync(
+    sourceTextures, TextureFormat.BC7, srgb: true, maxSize: 4096);
+await atlas.AddAsync(extraTexture);
+atlas.Remove(imageId);
+await atlas.RepackAsync();
+```
+
 `Entries`는 입력 순서를 유지합니다. `CopiedSourceIndices`는 그대로 복사한 입력이고 `ConvertedSourceIndices`는 변환한 입력입니다. sRGB UNorm과 선형 UNorm은 다른 형식으로 판단합니다. 변환 셰이더가 읽을 때 하드웨어가 sRGB RGB를 선형 값으로 바꿉니다. 선형 RGBA half-float 임시 텍스처를 거쳐 인코더가 목표 sRGB 변환을 한 번 적용합니다. 알파는 선형 값입니다. 변환 입력은 손실 압축을 다시 거치므로 원본과 픽셀 값이 달라질 수 있습니다. LDR 범위를 벗어난 값은 0~1로 제한합니다. Premultiplied 알파를 자동으로 바꾸지 않습니다.
 
-크기는 서로 달라도 됩니다. 예를 들어 101×57의 4×4 입력은 104×60 영역을 예약합니다. `PixelRect`는 유효 크기이고 `PackedRect`는 마지막 블록까지 포함합니다. 같은 형식의 부분 블록은 네이티브 브리지가 GPU 텍스처→임시 GPU 버퍼→아틀라스용 텍스처로 복사합니다. 이 경로도 디코딩과 재압축은 없습니다. 다른 입력은 먼저 GPU에서 마지막 유효 픽셀을 복제해 블록 크기의 배수까지 채웁니다. 변환용 텍스처와 인코더 출력은 크기별로 재사용합니다.
+크기는 서로 달라도 됩니다. 예를 들어 101×57의 4×4 입력은 104×60 영역을 예약합니다. `PixelRect`는 유효 크기이고 `PackedRect`는 마지막 블록까지 포함합니다. 같은 형식에서 크기가 블록 배수이면 아틀라스에 바로 영역 복사합니다. 배수가 아니면 **전체 밉 복사 오버로드**로 블록 수가 같은 정렬된 임시 텍스처에 복사한 뒤, 그 텍스처를 아틀라스에 영역 복사합니다. 두 단계 모두 `Graphics.CopyTexture`이며 디코딩·재압축·CPU 읽기가 없습니다. 영역 복사의 크기만 올림하면 원본 범위를 벗어나므로 사용할 수 없습니다. Unity의 [영역 복사 정렬 조건](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Graphics.CopyTexture.html)을 따릅니다. 임시 텍스처는 크기별로 재사용하고 GPU 완료 후 해제합니다. 원래 유효 영역 밖의 블록 texel도 그대로 보존하며 투명색이나 가장자리 복제색으로 바꾸지 않습니다.
 
-정렬된 입력의 직접 복사는 `Graphics.CopyTexture`이며 네이티브 인코더가 필요하지 않습니다. 부분 블록 복사와 불일치 입력의 재압축은 현재 브리지를 사용합니다. BC7은 Windows x64 D3D12, ASTC는 Android ARM64 Vulkan·iOS ARM64 Metal입니다. ASTC 변환은 현재 모바일 Player용입니다. Windows에서 ASTC 목표로 대체하지 않습니다. 지원하지 않는 GPU·대상·업로드 브리지는 오류를 반환합니다. 모바일의 실행·시간·발열 검증은 별도입니다.
+다른 형식·색 공간의 입력은 GPU에서 마지막 유효 픽셀을 복제해 목표 블록 크기의 배수까지 채웁니다. 변환용 텍스처와 인코더 출력은 크기별로 재사용합니다. 재압축 결과를 GPU 버퍼에서 압축 Texture2D로 옮기는 단계에는 네이티브 브리지가 필요합니다. BC7은 Windows x64 D3D12, ASTC는 Android ARM64 Vulkan·iOS ARM64 Metal입니다. ASTC 변환은 현재 모바일 Player용입니다. Windows에서 ASTC 목표로 대체하지 않습니다. 지원하지 않는 GPU·대상·업로드 브리지는 오류를 반환합니다. Android 실기기 검산 범위는 아래 결과를 따릅니다. iOS 실행과 모바일의 시간·발열 검증은 남아 있습니다.
 
 `mipLevel`은 각 텍스처의 **현재 GPU에 업로드된** 밉 체인에서의 번호입니다. 0은 현재 GPU 리소스의 첫 번째 밉입니다. `GraphicsTexture`의 실제 크기·밉을 사용하므로 원본 Texture2D의 논리 크기와 다를 수 있습니다. 작업이 끝날 때까지 밉 제한·스트리밍 상태와 원본을 변경하지 마십시오.
 
@@ -184,7 +194,7 @@ Transform의 위치·회전·스케일은 일반 Unity 오브젝트처럼 사용
 
 컴포넌트가 만든 자식 MeshRenderer와 공유 GPU 자원은 컴포넌트가 관리합니다. 마지막 view가 연결을 놓으면 마지막 제출 명령의 fence 뒤에 해제합니다. 아틀라스를 Dispose하면 연결된 view는 즉시 숨기고 렌더 자원도 해제합니다. 아틀라스 소유권은 로더·호출자에게 있습니다. view 하나를 제거해도 아틀라스나 다른 view를 Dispose하지 않습니다. 아틀라스의 `IsDisposed`로 해제 상태를 확인할 수 있습니다. `LookupCapacity`와 `LookupUploadCount`는 현재 공유 표의 진단값이며 공유 상태를 다시 만들면 업로드 횟수도 새로 셉니다.
 
-기본 셰이더는 Resources에 있어 Player 빌드에 포함됩니다. Shader Model 4.5와 구조화 GPU 버퍼가 필요합니다. UV는 유효 픽셀 중심으로 제한하므로 Bilinear에서도 다른 항목의 색을 읽지 않습니다. Unlit·일반 straight alpha 블렌드 방식입니다. URP Forward·Universal2D와 Built-in용 패스를 제공합니다. SpriteMask는 아래 URP 2D 경로를 사용합니다. 타일링·Sprite 애니메이터·2D 조명·스킨 변형·HDRP 전용 패스는 구현하지 않았습니다. 모바일 셰이더 코드 생성과 실제 기기 실행은 별도 검증입니다.
+기본 셰이더는 Resources에 있어 Player 빌드에 포함됩니다. Shader Model 4.5와 구조화 GPU 버퍼가 필요합니다. UV는 유효 픽셀 중심으로 제한하므로 Bilinear에서도 다른 항목의 색을 읽지 않습니다. Unlit·일반 straight alpha 블렌드 방식입니다. URP Forward·Universal2D와 Built-in용 패스를 제공합니다. SpriteMask는 아래 URP 2D 경로를 사용합니다. 타일링·Sprite 애니메이터·2D 조명·스킨 변형·HDRP 전용 패스는 구현하지 않았습니다. Android 실기기와 iOS의 검증 범위는 [플랫폼 표](#플랫폼과-검증-상태)를 따릅니다.
 
 ### 9-slice
 
@@ -365,12 +375,36 @@ GPU 출력은 Read/Write가 꺼진 Point·Clamp 텍스처입니다. `filterMode:
 
 이미 확보한 헤더 없는 블록 바이트는 `new CompressedAtlasSource(name, width, height, format, srgb, blocks)`로 입력합니다. 외부의 위쪽 행부터 저장된 데이터는 `CompressedRowOrder.TopToBottom`을 지정합니다. 이미지별 UV의 세로 부호로 방향을 처리하므로 블록 내부 비트를 수정하지 않습니다. `atlas.Data`는 헤더 없는 출력입니다. `atlas.ToFile()`은 ASTC 또는 BC7 DX10 DDS를 만듭니다. 배치 정보는 파일에 포함되지 않으므로 `Entries`를 별도로 보관합니다.
 
-검산은 런타임과 분리합니다. GPU 검산은 Windows BC7의 Read/Write를 끈 TextureImporter→혼합 AssetBundle→로드→GPU 복사·변환→샘플링을 확인합니다. Player 검산은 첫 검산이 만든 번들을 사용합니다. Editor를 닫은 뒤 다음 명령을 실행합니다. 현재 네이티브 라이브러리는 새 부분 블록 복사 함수를 포함합니다. 다른 환경에서는 아래 네이티브 빌드 절차로 먼저 설치하십시오.
+검산은 런타임과 분리합니다. GPU 검산은 Windows BC7의 Read/Write를 끈 TextureImporter→혼합 AssetBundle→로드→GPU 복사·변환→샘플링을 확인합니다. Player 검산은 첫 검산이 만든 번들을 사용합니다. Editor를 닫은 뒤 다음 명령을 실행합니다. 혼합 입력의 변환 검산에는 아래 네이티브 빌드 절차의 인코더 출력 플러그인이 필요합니다.
 
 ```powershell
 pwsh -File .\Tools\Verify-GpuAtlas.ps1 -BatchMode -DebugGpu
 pwsh -File .\Tools\Verify-GpuAtlasPlayer.ps1
 ```
+
+`CopyTexture`만 따로 검산하려면 다음 명령을 사용합니다. 셰이더 인코더나 네이티브 출력 브리지를 호출하지 않습니다. 알려진 압축 블록으로 만든 Read/Write Off 입력을 사용합니다. 같은 블록 수를 가진 전체 밉 복사, 패딩 영역까지의 픽셀 보존, 추가·제거·확장·재배치와 빈 아틀라스 재사용을 대조합니다. 기기가 샘플링하지 못하는 압축 형식은 결과의 `skippedFormats`에 기록합니다.
+
+```powershell
+pwsh -File .\Tools\Verify-GpuAtlas.ps1 -BatchMode -CopyOnly -DebugGpu
+pwsh -File .\Tools\Verify-GpuAtlas.ps1 -BatchMode -CopyOnly -GraphicsApi Vulkan
+```
+
+결과는 `.validation/gpu-atlas/copytexture/<GraphicsApi>/result.json`에 있습니다. 전체 D3D12 검산에도 이 검사를 포함합니다. Unity 6.7의 Windows D3D12와 Windows Vulkan에서 각각 BC7 선형·sRGB의 14개 사례, 부분 블록 입력 28개, 추가 42회와 재배치 28회를 통과했습니다. 각 API에서 원래 유효 영역 밖의 블록 texel을 포함한 363,488픽셀이 CPU 바이트로 만든 별도 참조 텍스처와 같았습니다. Android 13의 SM-A426N / Adreno 619 / Vulkan 1.1에서도 ASTC 4×4·5×5·6×6·8×8·10×10·12×12와 두 색 공간을 확인했습니다. 90개 사례, 부분 블록 입력 186개, 추가 270회, 재배치 180회를 통과했습니다. 패딩 영역을 포함한 9,351,774픽셀이 참조와 같았습니다. 이 기기에서 지원하지 않는 BC7 두 형식은 제외했습니다.
+
+Android 실기기 검산에는 Unity의 Android Build Support·SDK·NDK·OpenJDK와 USB 디버깅을 승인한 ARM64 기기가 필요합니다. Editor를 닫고 다음 명령을 실행합니다. 첫 명령은 Vulkan·IL2CPP 검산 APK를 만듭니다. 둘째 명령은 전용 앱 `com.ittodo.gputextureatlas.validation`을 설치하고 실행합니다. 기기가 여러 대면 `-Serial`로 대상을 지정합니다.
+
+```powershell
+pwsh -File .\Tools\Build-GpuAtlasAndroidProbe.ps1
+pwsh -File .\Tools\Verify-GpuAtlasAndroid.ps1
+```
+
+이 앱은 지원하는 ASTC 블록 크기와 두 색 공간의 복사·편집을 확인합니다. ASTC 4×4의 세 품질·두 색 공간 변환 결과를 별도 블록 업로드 참조와 대조합니다. Read/Write를 끈 Android AssetBundle 입력으로 9-slice·SpriteMask도 검사합니다. 비교용 CPU readback은 검산 코드에만 있습니다. 전체 실행 시간은 검산·프레임 대기를 포함하므로 압축 속도 지표로 사용하지 않습니다. APK와 빌드 로그는 `.validation/gpu-atlas/android/`에 저장합니다. 기기별 실행 보고서·PNG·앱 로그는 그 아래 `device-<실행 시각>/`에 저장합니다. 검사 뒤 전용 앱은 기기에 남습니다.
+
+2026-10-23에 SM-A426N / Android 13 / Adreno 619 / Vulkan 1.1에서 전체 검산을 통과했습니다. 렌더러는 URP Forward·2D와 두 색 공간에서 122프레임·562,176픽셀을 확인했습니다. 9-slice 86프레임과 SpriteMask 24프레임을 포함하며 최대 채널 차이는 약 1.56/255입니다. 기준 오차는 Windows와 같은 2/255입니다. 최종 실행 로그에는 Unity 오류·경고가 없었습니다. 이 결과는 해당 기기와 드라이버에 한정합니다.
+
+Android 네이티브 출력은 SM-A426N에서 ASTC 4×4의 세 품질·두 색 공간을 통과했습니다. 총 7,680픽셀이 CPU로 같은 블록을 업로드한 별도 참조와 같았습니다. 이 비교는 출력 전달의 정확성을 확인하며 압축 품질·속도 측정을 대신하지 않습니다.
+
+픽셀 검산은 URP Render Scale을 실행 중에만 1로 맞춘 뒤 원래 값으로 복원합니다. 모바일 기본값 0.8의 업스케일 필터가 CPU의 1:1 참조와 섞이지 않게 합니다. 프로젝트의 렌더 배율은 바꾸지 않습니다. 검산 APK에는 `APP_UI_EDITOR_ONLY`를 추가합니다. 에디터 도구용 App UI의 모바일 터치 초기화 오류를 피하며, 아틀라스 런타임에는 이 패키지가 필요하지 않습니다.
 
 Unity 6.7 D3D12에서 읽기 불가 BC7·RGBA32·DXT5 입력 10개를 두 색 공간과 세 품질로 확인했습니다. 아틀라스 6개에서 입력 18개는 그대로 복사했고 42개는 변환했습니다. 부분 블록 검산까지 포함해 직접 복사 경로 71,793픽셀과 독립 변환 참조 110,052픽셀이 일치했습니다. half 반올림도 독립 CPU 참조와 일치했습니다. 작은 밉의 아틀라스 3개, 원본 번들 해제 후 출력 유지, 출력 9개의 해제를 확인했습니다. 변환 커널은 D3D12·Android Vulkan/GLES3·iOS Metal에서 진단 없이 코드 생성을 통과했습니다.
 
@@ -382,7 +416,7 @@ Unity 6.7 D3D12에서 읽기 불가 BC7·RGBA32·DXT5 입력 10개를 두 색 �
 
 Editor와 Player 각각 최종 122프레임·562,176픽셀을 통과했습니다. 이 중 9-slice 설정은 86프레임, SpriteMask 대조는 24프레임입니다. 최대 채널 차이는 약 1.60/255이며 Bilinear·알파 블렌드·half 출력의 수치 차이를 위해 2/255 한도를 적용합니다. D3D12·Android Vulkan/GLES3·iOS Metal에서 인스턴싱 유무와 세 렌더 패스의 셰이더 단계·변형 36개가 컴파일을 통과했습니다. Editor 렌더러 결과와 Simple·Sliced·마스크 안팎·재배치 PNG는 `.validation/gpu-atlas/renderer/`에 있습니다. Player 렌더러 결과는 `.validation/gpu-atlas/player/renderer/`에 있습니다. README의 `AtlasBundleView` 예제도 현재 Unity 어셈블리를 참조해 C# 컴파일을 통과했습니다.
 
-별도 Windows Player는 읽기 불가 입력 10개를 3개 복사·7개 변환으로 처리했습니다. 직접 복사 10,752픽셀과 원본 번들 해제·GPU 재패킹 후 65,536픽셀이 일치했습니다. 추가 6회는 확장 5회와 기존 공간 사용 1회입니다. 변환 입력과 원본 해제 후 GPU 아틀라스 추가를 포함한 84,118픽셀이 참조와 같았습니다. 항목 제거 8개와 재배치 3회를 실행했고 재추가·빈 아틀라스 재사용을 포함한 272,482픽셀과 UV 좌표가 일치했습니다. 렌더러 검산을 포함한 전체 실행은 360프레임이었으며 대기 중인 자원 해제는 0개였습니다. GPU 결과는 `.validation/gpu-atlas/result.json`, Player 결과는 `.validation/gpu-atlas/player/result.json`에 있습니다. Addressables 패키지 자체의 빌드와 실제 Android·iOS 기기 실행은 이 검산에 포함하지 않습니다. iOS 네이티브 소스는 macOS·Xcode 컴파일과 기기 검증이 남아 있습니다. Android 네이티브는 ARM64 컴파일·링크를 통과했으며 기기 실행은 확인하지 않았습니다.
+별도 Windows Player는 읽기 불가 입력 10개를 3개 복사·7개 변환으로 처리했습니다. 직접 복사 10,752픽셀과 원본 번들 해제·GPU 재패킹 후 65,536픽셀이 일치했습니다. 추가 6회는 확장 5회와 기존 공간 사용 1회입니다. 변환 입력과 원본 해제 후 GPU 아틀라스 추가를 포함한 84,118픽셀이 참조와 같았습니다. 항목 제거 8개와 재배치 3회를 실행했고 재추가·빈 아틀라스 재사용을 포함한 272,482픽셀과 UV 좌표가 일치했습니다. CopyTexture 변경 후 다시 실행한 전체 검산은 렌더러를 포함해 350프레임이었으며 대기 중인 자원 해제는 0개였습니다. GPU 결과는 `.validation/gpu-atlas/result.json`, Player 결과는 `.validation/gpu-atlas/player/result.json`에 있습니다. Addressables 패키지 자체의 빌드와 iOS 기기 실행은 이 검산에 포함하지 않습니다. Android는 위 실기기 검산으로 확인합니다. iOS 네이티브 소스는 macOS·Xcode 컴파일과 기기 검증이 남아 있습니다.
 
 CPU 경로는 다음 명령으로 별도 검산합니다.
 
@@ -740,7 +774,9 @@ CoreCLR로 전환하지 않았습니다. Pipeline 0.8.0-exp.1은 CLI 속성 어�
 | `compute/Assets/TextureCompression/Resources/GpuAtlasUnlit.shader` | Built-in·URP Forward·Universal2D의 Unlit 렌더 패스 |
 | `compute/Assets/TextureCompression/Resources/GpuAtlasRender.hlsl` | 정수 ID 해시 조회·유효 여부·UV 경계 제한 |
 | `compute/Assets/TextureCompression/Shaders/GpuAtlasConvert.compute` | 선형 RGB로 읽기·목표 블록 크기까지 가장자리 채우기 |
-| `compute/Assets/TextureCompression/Runtime/GpuAtlasBlockCopy.cs` | 부분 블록의 GPU 텍스처→버퍼→텍스처 복사 |
+| `compute/Assets/TextureCompression/Editor/GpuAtlasCopyValidation.cs` | CopyTexture의 부분 블록·밉·추가·재배치 검산 |
+| `Tools/Build-GpuAtlasAndroidProbe.ps1`, `Tools/Verify-GpuAtlasAndroid.ps1` | Android Vulkan 검산 앱 빌드·설치·실행·보고서 수집 |
+| `Verification/GpuAtlasAndroidProbe.cs` | ASTC 실기기 복사·변환·렌더러 검산 앱 |
 | `Tools/Verify-GpuAtlas.ps1` | 읽기 불가 혼합 번들·색 공간·GPU 복사·변환·해제 검산 |
 | `compute/Assets/TextureCompression/Editor/GpuAtlasAdditionValidation.cs` | 추가·빈 공간 재사용·확장·실패·작업 중 해제 검산 |
 | `compute/Assets/TextureCompression/Editor/GpuAtlasEditingValidation.cs` | 제거·자리 재사용·재배치·빈 아틀라스·고정 ID 검산 |
@@ -768,7 +804,7 @@ CoreCLR로 전환하지 않았습니다. Pipeline 0.8.0-exp.1은 CLI 속성 어�
 
 ## Git 기록 범위
 
-소스·Unity 프로젝트 설정·입력 원본과 라이선스·측정 JSON/CSV·HTML 보고서를 기록합니다. Unity 캐시, 설치 도구, 임시 검산, Native/build와 벤치마크의 생성 PNG·ASTC·BC7 블록은 제외합니다. 파일은 로컬에 유지합니다. 새 체크아웃에서 복원 이미지 패널을 보려면 벤치마크를 다시 실행합니다. 측정 manifest의 SHA-256을 보존하도록 Git의 줄바꿈 자동 변환을 끕니다.
+소스·Unity 프로젝트 설정·입력 원본과 라이선스·측정 JSON/CSV·HTML 보고서를 기록합니다. Unity 캐시(`compute/.utmp/` 포함), 설치 도구, 임시 검산, Native/build와 벤치마크의 생성 PNG·ASTC·BC7 블록은 제외합니다. 파일은 로컬에 유지합니다. 새 체크아웃에서 복원 이미지 패널을 보려면 벤치마크를 다시 실행합니다. 측정 manifest의 SHA-256을 보존하도록 Git의 줄바꿈 자동 변환을 끕니다.
 
 ## 근거와 라이선스
 

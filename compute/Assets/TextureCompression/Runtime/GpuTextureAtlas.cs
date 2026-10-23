@@ -40,7 +40,6 @@ namespace UnityCompute.TextureCompression
         BlockAtlasLayout placement;
         readonly Dictionary<Vector2Int, Conversion> conversions = new Dictionary<Vector2Int, Conversion>();
         readonly Dictionary<Vector2Int, Texture2D> paddedCopies = new Dictionary<Vector2Int, Texture2D>();
-        readonly List<GpuAtlasBlockCopy> edgeCopies = new List<GpuAtlasBlockCopy>();
 
         sealed class Conversion : IDisposable
         {
@@ -68,7 +67,6 @@ namespace UnityCompute.TextureCompression
                     try
                     {
                         foreach (var item in conversions.Values) if (item.Status != 1) throw new InvalidOperationException($"GPU encoding upload failed: {item.Status}.");
-                        foreach (var item in edgeCopies) if (item.Status != 1) throw new InvalidOperationException($"GPU edge-block copy failed: {item.Status}.");
                     }
                     catch (Exception error) { failure = error; }
                     finally { ReleaseTemporaryResources(); completed = true; heldSources = null; }
@@ -202,7 +200,6 @@ namespace UnityCompute.TextureCompression
         void ReleaseTemporaryResources()
         {
             foreach (var item in conversions.Values) item.Dispose(); conversions.Clear();
-            foreach (var item in edgeCopies) item.Dispose(); edgeCopies.Clear();
             foreach (var item in paddedCopies.Values) DestroyTexture(item); paddedCopies.Clear();
         }
         static void DestroyTexture(UnityEngine.Object texture)
