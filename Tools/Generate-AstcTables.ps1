@@ -97,9 +97,9 @@ foreach ($count in @(6,8)) {
         $lookup.Add([uint32]$selected)
     }
 }
-[IO.File]::WriteAllText((Join-Path $workspace 'compute/Assets/Astc/Shaders/AstcTables.hlsl'), $hlsl.ToString())
+[IO.File]::WriteAllText((Join-Path $workspace 'Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcTables.hlsl'), $hlsl.ToString())
 $runtime = $header + "namespace UnityCompute.Astc { internal static class AstcLookup { internal static readonly uint[] Data = {`n" + (($lookup | ForEach-Object { "$($_)u" }) -join ',') + "`n}; } }"
-[IO.File]::WriteAllText((Join-Path $workspace 'compute/Assets/Astc/Runtime/AstcLookup.cs'), $runtime)
+[IO.File]::WriteAllText((Join-Path $workspace 'Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcLookup.cs'), $runtime)
 $cs = [Text.StringBuilder]::new($header + "namespace UnityCompute.Astc.Editor { internal static class AstcTables {`n")
 [void]$cs.AppendLine('public static readonly int[] Levels = { ' + ($levels -join ',') + ' };')
 [void]$cs.AppendLine('public static readonly int[] Bits = { ' + ($bits -join ',') + ' };')

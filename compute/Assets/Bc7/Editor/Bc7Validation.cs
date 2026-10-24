@@ -10,7 +10,7 @@ namespace UnityCompute.Bc7.Editor
 {
     public static class Bc7Validation
     {
-        const string ShaderPath="Assets/Bc7/Shaders/Bc7Encoder.compute";
+        const string ShaderPath="Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute";
         static string Root=>Path.GetFullPath(Path.Combine(Application.dataPath,"../../.validation/bc7"));
         public static string AsyncStatus{get;private set;}="not run";
         [Serializable]sealed class Report

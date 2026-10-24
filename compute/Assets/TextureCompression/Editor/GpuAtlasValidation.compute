@@ -1,7 +1,7 @@
 #pragma kernel ReadLinear
 #pragma kernel SampleEntry
 #pragma target 5.0
-#include "../Runtime/CompressedAtlasSampling.hlsl"
+#include "Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/CompressedAtlasSampling.hlsl"
 Texture2D<float4> _Source;
 SamplerState sampler_LinearClamp;
 RWStructuredBuffer<float4> _Linear;

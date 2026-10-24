@@ -29,13 +29,13 @@ namespace UnityCompute.Bc7.Editor
         {
             string root=Path.GetFullPath(Path.Combine(Application.dataPath,"../../Benchmark")),directory=Path.Combine(root,"Results/bc7");
             Directory.CreateDirectory(directory);
-            string Hash(string path){using var h=SHA256.Create();return BitConverter.ToString(h.ComputeHash(File.ReadAllBytes(path))).Replace("-","");}
-            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute");
+            string Hash(string path){using var h=SHA256.Create();return BitConverter.ToString(h.ComputeHash(File.ReadAllBytes(UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.FilePath(path)))).Replace("-","");}
+            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute");
             var report=new Report
             {
                 utc=DateTime.UtcNow.ToString("O"),unity=Application.unityVersion,gpu=SystemInfo.graphicsDeviceName,api=SystemInfo.graphicsDeviceType.ToString(),
                 inputManifestSha256=Hash(Path.Combine(root,"Input/manifest.json")),shaderSha256=Hash(AssetDatabase.GetAssetPath(shader)),
-                pluginSha256=Hash("Assets/Bc7/Plugins/Windows/x86_64/Bc7GpuUpload.dll"),
+                pluginSha256=Hash("Packages/com.ittodo.gpu-texture-atlas/Plugins/Bc7/Windows/x86_64/Bc7GpuUpload.dll"),
                 methodology="Same 60 canonical inputs, Fast/Balanced. Bc7GpuTexture on Windows x64 D3D12: compute encode, native GPU CopyTextureRegion, BC7 texture sampling. 16 warmups, then 3 batches of 16 EncodeFrame calls; one hardware sample/readback after each batch waits for completion. Batch elapsed divided by 16 includes CPU submission, encode and texture copy, plus amortized final sample/readback. It is throughput, not GPU timestamp or frame latency. EncodeFrame itself has no pixel readback or Apply. Submission median/p95 cover only EncodeFrame CPU calls, not GPU completion. Managed hot-loop allocation measured separately; 64 copies per input/profile. Initialization and input preparation excluded. Clocks and other desktop apps not controlled."
             };
             foreach(string file in Directory.GetFiles(Path.Combine(root,"Input"),"*.png",SearchOption.AllDirectories).OrderBy(p=>p))
@@ -88,7 +88,7 @@ namespace UnityCompute.Bc7.Editor
             public Sampler(Texture texture)
             {
                 this.texture=texture;
-                shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7DecodeHardware.compute");kernel=shader.FindKernel("DecodeHardware");
+                shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7DecodeHardware.compute");kernel=shader.FindKernel("DecodeHardware");
                 pixels=new ComputeBuffer(1,4);words=new uint[1];
             }
             public void Wait()

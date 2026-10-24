@@ -25,6 +25,7 @@ $remote = "/sdcard/Android/data/$package/files/gpu-atlas"
 Invoke-Adb @('shell','am','force-stop',$package) | Out-Null
 # Only reports written by this test package. No user application files are removed.
 Invoke-Adb @('shell','rm','-f',"$remote/result.json","$remote/progress.json") | Out-Null
+Invoke-Adb @('shell','input','keyevent','KEYCODE_WAKEUP') | Out-Null
 Invoke-Adb @('shell','am','start','-W','-n',$activity) | Out-Null
 $testProcessId = (Invoke-Adb @('shell','pidof',$package) -join '').Trim()
 $deadline = [DateTime]::UtcNow.AddSeconds($TimeoutSeconds)
@@ -46,7 +47,7 @@ try {
 }
 if (-not $complete) { throw "Device test timed out. See $runOutput" }
 $report = Get-Content -LiteralPath (Join-Path $runOutput 'gpu-atlas/result.json') -Raw | ConvertFrom-Json
-$report | Select-Object passed,copyPassed,conversionPassed,rendererPassed,device,gpu,backend,frames,convertedCases,convertedPixels,elapsedSeconds | ConvertTo-Json
+$report | Select-Object passed,copyPassed,conversionPassed,rendererPassed,schedulingPassed,device,gpu,backend,frames,convertedCases,convertedPixels,elapsedSeconds | ConvertTo-Json
 if ($report.error) { Write-Output (($report.error -split "`n")[0]) }
 Write-Output "Reports: $runOutput"
 if (-not $report.passed) { throw 'Android GPU atlas verification failed. Inspect the phase reports and player log.' }

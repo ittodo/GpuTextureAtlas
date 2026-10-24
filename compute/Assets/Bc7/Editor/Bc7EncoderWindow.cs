@@ -25,7 +25,7 @@ namespace UnityCompute.Bc7.Editor
             busy=true;
             try
             {
-                using var encoder=new Bc7Encoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute"));
+                using var encoder=new Bc7Encoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute"));
                 var image=SystemInfo.supportsAsyncGPUReadback?await encoder.EncodeAsync(source,srgb,inputSrgb,quality,true):encoder.Encode(source,srgb,inputSrgb,quality,true);
                 File.WriteAllBytes(path,image.ToDdsFile());status=$"Saved {image.Width}x{image.Height}, {image.Data.Length:N0} BC7 bytes: {path}";
             }

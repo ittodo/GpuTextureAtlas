@@ -27,8 +27,8 @@ namespace UnityCompute.TextureCompression.Editor
         public static string RunGpuRows()
         {
             var source = Source(37, 29); int cases = 0, bands = 0;
-            using var astc = new AstcEncoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Astc/Shaders/AstcEncoder.compute"));
-            using var bc7 = new Bc7Encoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute"));
+            using var astc = new AstcEncoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute"));
+            using var bc7 = new Bc7Encoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute"));
             try
             {
                 foreach (bool srgb in new[] { false, true }) foreach (AstcQuality quality in Enum.GetValues(typeof(AstcQuality)))
@@ -89,7 +89,7 @@ namespace UnityCompute.TextureCompression.Editor
             var report = new StreamReport { unity = Application.unityVersion, utc = DateTime.UtcNow.ToString("O") };
             try
             {
-                var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute");
+                var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute");
                 using var reference = new Bc7Encoder(shader);
                 foreach (Bc7Quality quality in Enum.GetValues(typeof(Bc7Quality))) foreach (bool snapshot in new[] { false, true })
                 {
@@ -151,7 +151,7 @@ namespace UnityCompute.TextureCompression.Editor
         }
         internal static uint[] Read(Texture texture, int width, int height)
         {
-            var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7DecodeHardware.compute"); int kernel = shader.FindKernel("DecodeHardware");
+            var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7DecodeHardware.compute"); int kernel = shader.FindKernel("DecodeHardware");
             using var buffer = new ComputeBuffer(width * height, 4);
             shader.SetInts("_Size", width, height); shader.SetTexture(kernel, "_Source", texture); shader.SetBuffer(kernel, "_Pixels", buffer);
             shader.Dispatch(kernel, (width + 7) / 8, (height + 7) / 8, 1); var pixels = new uint[width * height]; buffer.GetData(pixels); return pixels;

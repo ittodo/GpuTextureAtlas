@@ -1,0 +1,5 @@
+{
+  "name": "GpuTextureAtlas.Sample.Editor",
+  "references": ["GpuTextureAtlas.Sample"],
+  "includePlatforms": ["Editor"]
+}

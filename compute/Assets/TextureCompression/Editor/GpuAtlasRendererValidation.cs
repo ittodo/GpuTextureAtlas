@@ -239,8 +239,8 @@ namespace UnityCompute.TextureCompression.Editor
             try
             {
                 string result = await Run(Path.Combine(root, "bundle/gpu-atlas-inputs"),
-                    UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute"),
-                    UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/TextureCompression/Shaders/GpuAtlasConvert.compute"),
+                    UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute"),
+                    UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Atlas/GpuAtlasConvert.compute"),
                     UnityEditor.AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/TextureCompression/Editor/GpuAtlasValidation.compute"), Path.Combine(root, "renderer"));
                 await GpuAtlasValidation.DrainRetirement();
                 File.WriteAllText(Path.Combine(root, "renderer/batch-result.txt"), result + "\n" + RunCompilers(Path.Combine(root, "renderer"))); UnityEditor.EditorApplication.Exit(0);

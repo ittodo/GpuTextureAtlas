@@ -1,0 +1,4 @@
+{
+  "name": "GpuTextureAtlas.Sample",
+  "references": ["UnityCompute.GpuTextureAtlas"]
+}

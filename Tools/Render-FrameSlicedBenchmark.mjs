@@ -8,7 +8,7 @@ const run=read('Benchmark/Results/frame-sliced/measurements.json');
 if(run.rows.length!==36||new Set(run.rows.map(r=>[r.texture,r.format,r.blockSize,r.quality,r.rowsPerBatch].join('/'))).size!==36)throw Error('Incomplete timing matrix.');
 for(const row of run.rows)if(![4,32].includes(row.rowsPerBatch)||row.batches!==Math.ceil(Math.ceil(row.height/row.blockSize)/row.rowsPerBatch)||![row.fullMs,row.meanBatchMs,row.p95BatchMs,row.maxBatchMs].every(v=>Number.isFinite(v)&&v>0)||row.meanBatchMs>row.maxBatchMs||row.p95BatchMs>row.maxBatchMs)throw Error('Invalid batch timing.');
 const hash=p=>crypto.createHash('sha256').update(fs.readFileSync(path.join(root,p))).digest('hex').toUpperCase();
-if(run.astcSha256!==hash('compute/Assets/Astc/Shaders/AstcEncoder.compute')||run.bc7Sha256!==hash('compute/Assets/Bc7/Shaders/Bc7Encoder.compute'))throw Error('Current timing source differs.');
+if(run.astcSha256!==hash('Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute')||run.bc7Sha256!==hash('Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute'))throw Error('Current timing source differs.');
 const columns=Object.keys(run.rows[0]),csv=values=>values.map(v=>'"'+String(v).replaceAll('"','""')+'"').join(',');
 fs.writeFileSync(path.join(root,'Benchmark/Results/frame-sliced/measurements.csv'),'\uFEFF'+[csv(columns),...run.rows.map(r=>csv(columns.map(k=>r[k])))].join('\n'));
 const data=JSON.stringify(run).replaceAll('<','\\u003c');

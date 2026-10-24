@@ -1,0 +1,360 @@
+{
+  "measuredAt": "2026-10-24T03:23:44.199Z",
+  "unity": "6000.7.0b5",
+  "backend": "CoreCLR",
+  "platform": "Windows x64 / D3D12",
+  "profiler": "ICorProfilerCallback2 allocation and GC survival callbacks",
+  "sampled": false,
+  "concurrentGcRequested": false,
+  "captureEnd": "process-exit",
+  "clrShutdownCallback": false,
+  "pid": 46280,
+  "classesAndArrayTypes": 1163,
+  "gcCycles": 57,
+  "allocated": 8225267,
+  "collected": 8078115,
+  "remainingTracked": 147152,
+  "allocatedBytes": 481524016,
+  "collectedBytes": 470148029,
+  "unknownGenerationMaxPerGc": 2734,
+  "unresolvedTypeNames": 0,
+  "profilerSha256": "5722298F4D68FDAD2A9DEF72E0A2BB1F3CD5382314CDDDF5553143541E4EC61B",
+  "playerSha256": "1419475006B03C1BC134C9C33BD3C63A32CB72B5EF3B7638DC1D8D00E3F539CD",
+  "playerAssemblySha256": "6A077AB117100B050EFC27F6F9FB8905A95031E4A31709535087915D5024C5B7",
+  "packageFilesUnchanged": 42,
+  "runtimeSourcesUnchanged": 3,
+  "calibrationPassed": true,
+  "workload": {
+    "passed": true,
+    "error": "",
+    "unity": "6000.7.0b5",
+    "gpu": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+    "cycles": 8,
+    "exactPixels": 430080,
+    "releasedInputs": 16,
+    "sceneCancellations": 1,
+    "sampleViews": 4
+  },
+  "selectedTypes": [
+    {
+      "type": "UnityEngine.Texture2D",
+      "allocated": 77,
+      "collected": 56,
+      "remainingTracked": 21,
+      "allocatedBytes": 1848,
+      "collectedBytes": 1344
+    },
+    {
+      "type": "UnityCompute.TextureCompression.CompressedAtlasEntry",
+      "allocated": 47,
+      "collected": 36,
+      "remainingTracked": 11,
+      "allocatedBytes": 4512,
+      "collectedBytes": 3456
+    },
+    {
+      "type": "UnityCompute.TextureCompression.BlockAtlasLayout",
+      "allocated": 43,
+      "collected": 37,
+      "remainingTracked": 6,
+      "allocatedBytes": 1720,
+      "collectedBytes": 1480
+    },
+    {
+      "type": "UnityCompute.TextureCompression.CompressedAtlasEntry[]",
+      "allocated": 43,
+      "collected": 37,
+      "remainingTracked": 6,
+      "allocatedBytes": 1536,
+      "collectedBytes": 1304
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas+<>c__DisplayClass101_0",
+      "allocated": 36,
+      "collected": 29,
+      "remainingTracked": 7,
+      "allocatedBytes": 1152,
+      "collectedBytes": 928
+    },
+    {
+      "type": "UnityCompute.TextureCompression.BlockAtlasLayout+Item[]",
+      "allocated": 35,
+      "collected": 32,
+      "remainingTracked": 3,
+      "allocatedBytes": 1296,
+      "collectedBytes": 1152
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas",
+      "allocated": 35,
+      "collected": 28,
+      "remainingTracked": 7,
+      "allocatedBytes": 5040,
+      "collectedBytes": 4032
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas+FrameWork",
+      "allocated": 35,
+      "collected": 32,
+      "remainingTracked": 3,
+      "allocatedBytes": 1400,
+      "collectedBytes": 1280
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas+InputBatch",
+      "allocated": 27,
+      "collected": 24,
+      "remainingTracked": 3,
+      "allocatedBytes": 2808,
+      "collectedBytes": 2496
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas+Conversion",
+      "allocated": 21,
+      "collected": 16,
+      "remainingTracked": 5,
+      "allocatedBytes": 840,
+      "collectedBytes": 640
+    },
+    {
+      "type": "UnityCompute.Bc7.Bc7GpuTexture",
+      "allocated": 21,
+      "collected": 14,
+      "remainingTracked": 7,
+      "allocatedBytes": 2016,
+      "collectedBytes": 1344
+    },
+    {
+      "type": "UnityCompute.Bc7.Bc7Encoder",
+      "allocated": 21,
+      "collected": 14,
+      "remainingTracked": 7,
+      "allocatedBytes": 1176,
+      "collectedBytes": 784
+    },
+    {
+      "type": "UnityCompute.Bc7.Bc7Image",
+      "allocated": 21,
+      "collected": 16,
+      "remainingTracked": 5,
+      "allocatedBytes": 840,
+      "collectedBytes": 640
+    },
+    {
+      "type": "UnityCompute.TextureCompression.FrameSlicedGpuJob",
+      "allocated": 21,
+      "collected": 14,
+      "remainingTracked": 7,
+      "allocatedBytes": 2016,
+      "collectedBytes": 1344
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas+<>c__DisplayClass14_0",
+      "allocated": 16,
+      "collected": 14,
+      "remainingTracked": 2,
+      "allocatedBytes": 384,
+      "collectedBytes": 336
+    },
+    {
+      "type": "UnityEngine.GameObject",
+      "allocated": 14,
+      "collected": 1,
+      "remainingTracked": 13,
+      "allocatedBytes": 336,
+      "collectedBytes": 24
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderer[]",
+      "allocated": 4,
+      "collected": 0,
+      "remainingTracked": 4,
+      "allocatedBytes": 192,
+      "collectedBytes": 0
+    },
+    {
+      "type": "GpuTextureAtlasSamples.DynamicAtlasDemo+<>c__DisplayClass20_0",
+      "allocated": 4,
+      "collected": 0,
+      "remainingTracked": 4,
+      "allocatedBytes": 96,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderer",
+      "allocated": 4,
+      "collected": 0,
+      "remainingTracked": 4,
+      "allocatedBytes": 800,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasFrameBudget",
+      "allocated": 3,
+      "collected": 0,
+      "remainingTracked": 3,
+      "allocatedBytes": 192,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.Bc7.Bc7GpuRetirement+Pending[]",
+      "allocated": 2,
+      "collected": 0,
+      "remainingTracked": 2,
+      "allocatedBytes": 144,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRetirement+Pending[]",
+      "allocated": 2,
+      "collected": 0,
+      "remainingTracked": 2,
+      "allocatedBytes": 144,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState[]",
+      "allocated": 2,
+      "collected": 0,
+      "remainingTracked": 2,
+      "allocatedBytes": 80,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.Verification.GpuAtlasPackageProbe",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 56,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.Verification.GpuAtlasPackageProbe+Report",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 64,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.Verification.GpuAtlasPackageProbe+<>c",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 24,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.BlockAtlasLayout+<>c",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 24,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.Bc7.Bc7GpuRetirement",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 32,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRetirement",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 32,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.Bc7.Bc7GpuTexture+UploadPacket",
+      "allocated": 1,
+      "collected": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 56,
+      "collectedBytes": 56
+    },
+    {
+      "type": "UnityCompute.TextureCompression.Verification.GpuAtlasPackageOwner",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 40,
+      "collectedBytes": 0
+    },
+    {
+      "type": "GpuTextureAtlasSamples.DynamicAtlasDemo",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 136,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 88,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityEngine.Material",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 24,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityEngine.Mesh",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 24,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState+<>c__DisplayClass31_0",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 24,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState+Record[]",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 408,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState+Record",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 64,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState+<>c",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 24,
+      "collectedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState+<>c__DisplayClass33_0",
+      "allocated": 1,
+      "collected": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 40,
+      "collectedBytes": 0
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.IO;
 using UnityEditor;
@@ -17,7 +18,7 @@ namespace UnityCompute.TextureCompression.Editor
         }
         public static void Build()
         {
-            var type = typeof(GpuTextureAtlas).Assembly.GetType("UnityCompute.TextureCompression.Verification.GpuAtlasPlayerProbe");
+            var type = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("UnityCompute.TextureCompression.Verification.GpuAtlasPlayerProbe")).FirstOrDefault(t => t != null);
             if (type == null) throw new InvalidOperationException("Install the temporary verification source first.");
             const string scenePath = "Assets/TextureCompression/VerificationTemp/Probe.unity";
             var previous = SceneManager.GetActiveScene();
@@ -28,8 +29,8 @@ namespace UnityCompute.TextureCompression.Editor
             {
                 SceneManager.SetActiveScene(scene);
                 var component = new GameObject("GPU atlas verification").AddComponent(type); var serialized = new SerializedObject(component);
-                serialized.FindProperty("encoderShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute");
-                serialized.FindProperty("conversionShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/TextureCompression/Shaders/GpuAtlasConvert.compute");
+                serialized.FindProperty("encoderShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute");
+                serialized.FindProperty("conversionShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Atlas/GpuAtlasConvert.compute");
                 serialized.FindProperty("readShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/TextureCompression/VerificationTemp/GpuAtlasValidation.compute");
                 serialized.ApplyModifiedPropertiesWithoutUndo(); EditorSceneManager.SaveScene(scene, scenePath);
                 string output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../.validation/gpu-atlas/player/GpuAtlasProbe.exe"));

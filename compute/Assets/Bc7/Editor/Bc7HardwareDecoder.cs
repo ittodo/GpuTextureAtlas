@@ -14,7 +14,7 @@ namespace UnityCompute.Bc7.Editor
             try
             {
                 if(texture.format!=TextureFormat.BC7)throw new InvalidOperationException("BC7 was substituted by an uncompressed format.");
-                var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7DecodeHardware.compute");
+                var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7DecodeHardware.compute");
                 int kernel=shader.FindKernel("DecodeHardware");
                 using var buffer=new ComputeBuffer(checked(image.Width*image.Height),4);
                 shader.SetInts("_Size",image.Width,image.Height);shader.SetTexture(kernel,"_Source",texture);shader.SetBuffer(kernel,"_Pixels",buffer);

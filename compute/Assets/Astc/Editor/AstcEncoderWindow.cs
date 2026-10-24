@@ -39,7 +39,7 @@ namespace UnityCompute.Astc.Editor
             busy = true;
             try
             {
-                using var encoder = new AstcEncoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Astc/Shaders/AstcEncoder.compute"));
+                using var encoder = new AstcEncoder(AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute"));
                 var image = SystemInfo.supportsAsyncGPUReadback ? await encoder.EncodeAsync(source, size, srgb, sampledInputIsSrgb, quality) : encoder.Encode(source, size, srgb, sampledInputIsSrgb, quality);
                 File.WriteAllBytes(path, image.ToAstcFile());
                 status = $"Saved {image.Width}x{image.Height}, {image.Data.Length:N0} payload bytes: {path}";
@@ -58,7 +58,7 @@ namespace UnityCompute.Astc.Editor
             var root = new GameObject("ASTC Demo");
             SceneManager.MoveGameObjectToScene(root, scene);
             var demo = root.AddComponent<AstcDemo>();
-            demo.encoderShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Astc/Shaders/AstcEncoder.compute");
+            demo.encoderShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute");
             var camera = new GameObject("Camera");
             SceneManager.MoveGameObjectToScene(camera, scene);
             camera.AddComponent<Camera>().backgroundColor = new Color(.08f, .09f, .12f);

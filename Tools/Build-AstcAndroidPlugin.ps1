@@ -13,7 +13,7 @@ if ($LASTEXITCODE -ne 0) { throw 'Android Vulkan native plug-in build failed.' }
 $elf = [IO.File]::ReadAllBytes($library)
 if ($elf[0] -ne 127 -or $elf[1] -ne 69 -or $elf[2] -ne 76 -or $elf[3] -ne 70 -or $elf[4] -ne 2 -or [BitConverter]::ToUInt16($elf,18) -ne 183) { throw 'Output is not an ELF64 AArch64 library.' }
 if (-not $NoInstall) {
-    $destination = Join-Path $root 'compute\Assets\Astc\Plugins\Android\arm64-v8a'
+    $destination = Join-Path $root 'Packages/com.ittodo.gpu-texture-atlas/Plugins/Astc/Android/arm64-v8a'
     New-Item -ItemType Directory -Path $destination -Force | Out-Null
     Copy-Item -LiteralPath $library -Destination $destination -Force
 }

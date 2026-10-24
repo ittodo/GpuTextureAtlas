@@ -8,7 +8,28 @@ GPU에 로드한 Texture2D를 ASTC·BC7 아틀라스로 묶습니다. Read/Write
 
 실행 중 이미지를 추가·제거·재배치할 수 있습니다. 항목의 ID는 좌표가 바뀌어도 유지됩니다. 전용 렌더러는 새 텍스처와 UV를 자동으로 반영하며 9-slice와 SpriteMask를 지원합니다. ASTC·BC7 인코더는 단독으로도 사용할 수 있습니다.
 
-현재 제공 형태는 **Unity 6000.7.0b5 예제 프로젝트**입니다. `compute/`를 Unity Hub에서 엽니다. 사용법과 지원 범위는 이 문서를 기준으로 합니다.
+**UPM 패키지와 Unity 6000.7.0b5 예제 프로젝트**를 제공합니다. `compute/`를 Unity Hub에서 열거나 아래 방법으로 패키지를 설치합니다. 사용법과 지원 범위는 이 문서를 기준으로 합니다.
+
+## 패키지 설치와 데모
+
+1. 이 저장소를 내려받습니다. Unity 6000.7.0b5에서 Package Manager를 엽니다.
+2. **Install package from disk**로 `Packages/com.ittodo.gpu-texture-atlas/package.json`을 선택합니다.
+3. 패키지의 Samples에서 **Dynamic Atlas**를 Import합니다.
+4. **Tools → GpuTextureAtlas → Create sample scene**을 실행합니다. 씬을 저장하고 Play Mode로 들어갑니다.
+5. Add·Remove·Repack·9-slice 버튼을 사용합니다. Inspector의 Inputs에는 Read/Write를 끈 임포트 텍스처를 지정할 수 있습니다. 비워 두면 예제 RGBA 이미지를 생성합니다.
+
+예제의 렌더러는 Repack 후에도 같은 고정 ID를 유지합니다. 작업 중 버튼 입력을 막고 기존 아틀라스를 표시합니다. 씬 종료 시 취소를 요청하고 Task가 끝난 뒤 소유 자원을 해제합니다.
+
+런타임 어셈블리는 `UnityCompute.GpuTextureAtlas`입니다. 사용자 코드가 asmdef를 사용하면 이 어셈블리를 참조합니다. 코어는 Addressables와 URP를 요구하지 않습니다. SpriteMask를 사용하면 URP 17.7 이상과 2D Renderer가 필요합니다. URP가 설치되면 선택 어셈블리 `UnityCompute.GpuTextureAtlas.URP`가 연동을 등록합니다. 검산·벤치마크·AI Editor 도구는 패키지 의존성이 아닙니다.
+
+Git URL 설치 경로는 `https://github.com/ittodo/GpuTextureAtlas.git?path=/Packages/com.ittodo.gpu-texture-atlas`입니다. Package Manager의 **Install package from git URL**에서 사용합니다. 다른 Unity 버전과 iOS 실기기 호환성을 검증한 것은 아닙니다.
+
+`.tgz` 파일로 전달하려면 저장소 루트에서 아래 명령을 실행합니다. Node.js의 npm을 사용하며 네트워크에 게시하지 않습니다. 생성한 파일은 Package Manager의 **Install package from tarball**로 설치합니다. 아카이브에는 패키지와 데모만 들어갑니다.
+
+```powershell
+New-Item -ItemType Directory -Path .validation/distribution -Force
+npm pack ./Packages/com.ittodo.gpu-texture-atlas --offline --cache .validation/npm-cache --pack-destination .validation/distribution
+```
 
 ## 주요 기능
 
@@ -19,11 +40,11 @@ GPU에 로드한 Texture2D를 ASTC·BC7 아틀라스로 묶습니다. Read/Write
 | 동적 편집 | Add·Remove·Repack, 빈자리 재사용, 필요 시 아틀라스 확장, 고정 ID를 제공합니다. |
 | 전용 렌더러 | ID로 이미지를 연결합니다. 크기·피벗·반전·색상·정렬·9-slice·SpriteMask를 설정합니다. |
 | GPU 인코더 | ASTC 정사각 블록 6종과 BC7, Fast·Balanced·HighQuality를 제공합니다. |
-| 프레임 분산 압축 | 인코더 작업을 블록 행 단위로 나누고 GPU 완료 뒤 결과를 게시합니다. |
+| 프레임 분산 | Pack·Add·Repack의 복사·변환·압축에 프레임별 공유 예산을 적용합니다. 완료 후 결과를 게시합니다. |
 | Unity 로딩 연동 | Addressables·AssetBundle에서 로드한 Texture2D를 입력합니다. |
 | 별도 검산 도구 | 압축 블록 보존·디코더 대조·실제 카메라 출력·Editor와 Player 실행을 확인합니다. |
 
-배치 좌표와 항목 메타데이터는 CPU에서 처리합니다. GPU 경로는 이미지 픽셀을 CPU로 읽지 않습니다. 원본 파일 로딩과 초기 자원 생성에는 CPU 작업이 있습니다. 아틀라스의 Pack·Add·Repack은 GPU 완료를 비동기로 기다리며, 프레임 분산 인코더와 별도 API입니다.
+배치 좌표와 항목 메타데이터는 CPU에서 처리합니다. GPU 경로는 이미지 픽셀을 CPU로 읽지 않습니다. 원본 파일 로딩과 초기 자원 생성에는 CPU 작업이 있습니다. 아틀라스의 Pack·Add·Repack은 GPU 완료를 비동기로 기다립니다. `GpuAtlasFrameBudget`을 전달하면 GPU 제출도 여러 프레임으로 나눕니다.
 
 ## 플랫폼과 검증 상태
 
@@ -35,20 +56,45 @@ GPU에 로드한 Texture2D를 ASTC·BC7 아틀라스로 묶습니다. Read/Write
 | Android ARM64 | Vulkan | ASTC | SM-A426N / Adreno 619에서 복사·편집·GPU 변환·9-slice·SpriteMask 검산 통과 |
 | iOS ARM64 | Metal | ASTC | 셰이더 코드 생성 확인. Xcode 네이티브 빌드·실기기 실행 미검증 |
 
-Windows에서도 ASTC 블록을 GPU로 인코딩하고 `.astc` 파일로 내보내는 경로를 검산했습니다. ASTC 텍스처의 실시간 샘플링·GPU 출력은 지원 기기에서 사용합니다. 모바일의 실행 시간·발열·연속 압축 안정성은 아직 측정하지 않았습니다.
+Windows에서도 ASTC 블록을 GPU로 인코딩하고 `.astc` 파일로 내보내는 경로를 검산했습니다. ASTC 텍스처의 실시간 샘플링·GPU 출력은 지원 기기에서 사용합니다. Android 측정 범위와 비용은 아래 결과를 따릅니다. iOS와 Mali GPU 실기기는 아직 검증하지 않았습니다.
 
 GPU 아틀라스 출력은 한 밉 레벨입니다. 밉 체인과 여러 아틀라스 페이지를 자동으로 만들지 않습니다. 전용 렌더러의 SpriteMask는 URP 2D Renderer가 필요합니다. 현재 Unity 베타에서는 마스크가 있는 공유 그룹의 자동 인스턴싱을 끕니다. 해당 조건은 아래 사용법에서 설명합니다.
+
+### Android 모바일 성능
+
+2026-10-24에 **SM-A426N / Adreno 619 / Android 13 / Vulkan / Unity 6000.7.0b5**에서 ASTC 4×4 sRGB를 측정했습니다. 256·512·1024마다 알파 10장과 불투명 10장을 사용했습니다. [Android 보고서](Benchmark/Results/mobile-atlas/report.html)에 입력별 측정, 그룹별 P95·P99·최대값, 제외 사유와 원본을 제공합니다.
+
+다음 값은 **20장을 합산한 중앙값**입니다. 입력 로딩과 예열을 제외했습니다. 즉시 복사는 `frameBudget: null`입니다. 분산 모드는 복사 16,384블록, Fast 압축 128블록, 변환 65,536픽셀/프레임으로 제한했습니다. CPU 열은 분산 복사의 최초 호출 비용입니다. 완료 열에는 프레임과 GPU fence 대기가 포함됩니다.
+
+| 해상도 | ASTC 복사: CPU 호출 ms | ASTC 즉시 복사: 완료 ms | ASTC 분산 복사: 완료 ms | RGBA→ASTC Fast 분산: 완료 ms |
+|---|---:|---:|---:|---:|
+| 256×256 | 0.37 | 17.13 | 16.76 | 1,083.19 |
+| 512×512 | 0.36 | 16.79 | 33.56 | 4,348.42 |
+| 1024×1024 | 0.45 | 16.99 | 133.39 | 17,443.34 |
+
+**이 기기에서 자주 갱신할 입력은 미리 압축한 ASTC를 복사하는 경로부터 사용하십시오.** 작은 프레임 예산은 작업을 나누지만 전체 완료 지연을 늘립니다. 위 Fast 설정으로 1024 이미지를 매 프레임 새로 압축할 수는 없습니다. HighQuality는 32블록/프레임으로 측정했으며, 1024 표본의 완료 중앙값은 141.60초였습니다. 90ms를 넘는 GPU 프레임도 있어 60fps용 설정으로 권장하지 않습니다. 라이브러리의 기본 압축 예산 1,024블록이 이 기기의 측정 설정과 같다는 뜻은 아닙니다.
+
+256 입력 20장을 순환한 600초 반복 검사에서 Add·Remove·Repack을 **828회** 완료했습니다. 검사 중 5초간 백그라운드로 보낸 뒤 복귀했습니다. 배터리 센서는 27.3°C, Android 열 상태는 0을 기록했습니다. Unity 전체 할당량 추정치는 약 202.9~204.4MiB였습니다. 이 값에는 측정 앱과 보고서 메모리도 포함됩니다. GPU 온도와 VRAM 사용량을 확인한 결과는 아닙니다.
+
+측정 앱에는 단순 카메라와 상태 UI가 있습니다. 아틀라스를 렌더링하는 게임 장면의 부하는 포함하지 않았습니다. FrameTimingManager 값은 앱 전체 GPU 프레임이며 압축 커널 시간이 아닙니다. IL2CPP의 호출별 관리 힙 할당 카운터와 기기의 그래픽 메모리 조회는 사용할 수 없어 N/A로 표시합니다. 같은 입력에 대한 반복 횟수는 1회입니다. 입력·기기·예산이 달라지면 다시 측정하십시오.
+
+성능 측정 중 앱이 장시간 백그라운드에 있었던 `1024/brown_leather/HighQuality` 한 건은 같은 APK로 다시 측정해 교체했습니다. 교체 전 원본과 재측정 원본을 보고서에 보존했습니다. 전체 실행의 백그라운드/복귀 2회 중 1회는 이 중단이며, 나머지 1회는 600초 반복 검사의 의도적인 복귀 검사입니다.
 
 ## 사용법 안내
 
 - [처음 사용하는 순서](#처음-사용하는-순서)와 [GPU 아틀라스 생성](#gpu-경로--readwrite-끄기)
+- [패키지 설치와 데모](#패키지-설치와-데모), [공유 프레임 예산과 취소](#아틀라스-작업의-프레임-분산과-취소)
 - [이미지 추가](#기존-gpu-아틀라스에-이미지-추가), [제거와 재배치](#제거와-재배치)
 - [전용 렌더러](#고정-id를-사용하는-전용-렌더러), [9-slice](#9-slice), [SpriteMask](#spritemask)
 - [Addressables·AssetBundle 로딩과 해제](#addressables와-assetbundle), [문제 확인](#문제-확인)
 - [ASTC 인코더](#astc-인코더의-지원-범위), [BC7 인코더](#bc7-gpu-압축), [프레임 분산 압축](#여러-프레임에-나누는-압축)
-- [벤치마크 보고서](Benchmark/Results/report.html), [HighQuality 보고서](Benchmark/Results/high-quality/report.html), [검산 절차](#검산)
+- [벤치마크 보고서](Benchmark/Results/report.html), [HighQuality 보고서](Benchmark/Results/high-quality/report.html), [Android 보고서](Benchmark/Results/mobile-atlas/report.html), [검산 절차](#검산)
 
 Windows의 최근 아틀라스 렌더러 검산은 Editor·Player 각각 122프레임·562,176픽셀을 통과했습니다. 이는 렌더링 정확도 검산입니다. 성능 측정의 환경·입력·측정 시점은 각 보고서에 따로 기록합니다.
+
+## 별도 관리 객체 진단
+
+[CoreCLR·Android IL2CPP 할당 진단](Verification/Profiling/README.md)에 수집기 소스와 2026-10-24 검산 결과를 보관합니다. UPM 패키지에는 포함하지 않습니다. Android의 지표는 GC 후 약한 참조 소실이며 정확한 메모리 반환 횟수가 아닙니다.
 
 ## 임포트한 ASTC·BC7 텍스처의 아틀라스 패킹
 
@@ -67,8 +113,8 @@ Windows의 최근 아틀라스 렌더러 검산은 Editor·Player 각각 122프�
 
 | 대상 | 목표 형식 | 변환 인코더 | 변환 셰이더 |
 |---|---|---|---|
-| Windows x64 / D3D12 | `TextureFormat.BC7` | `Assets/Bc7/Shaders/Bc7Encoder.compute` | `Assets/TextureCompression/Shaders/GpuAtlasConvert.compute` |
-| Android ARM64 / Vulkan, iOS ARM64 / Metal | `TextureFormat.ASTC_4x4` 등 | `Assets/Astc/Shaders/AstcEncoder.compute` | 위와 같음 |
+| Windows x64 / D3D12 | `TextureFormat.BC7` | `Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute` | `Packages/com.ittodo.gpu-texture-atlas/Shaders/Atlas/GpuAtlasConvert.compute` |
+| Android ARM64 / Vulkan, iOS ARM64 / Metal | `TextureFormat.ASTC_4x4` 등 | `Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute` | 위와 같음 |
 
 모바일에서 같은 ASTC 형식·색 공간을 복사할 때는 Compute 셰이더와 자체 네이티브 브리지를 호출하지 않습니다. 다른 형식·색 공간을 변환할 때는 대상 기기의 Compute 지원과 네이티브 인코더 출력 브리지가 필요합니다. 세부 지원 범위는 아래 GPU 경로 설명과 검산 결과를 따릅니다. 투명 UI의 경계 품질은 ASTC 4×4부터 확인합니다. 임포트한 Texture2D 전체가 입력 한 장입니다. Sprite Mode Multiple의 서브 Sprite 영역을 자동으로 추출하지 않습니다.
 
@@ -109,7 +155,7 @@ await atlas.RepackAsync();
 
 크기는 서로 달라도 됩니다. 예를 들어 101×57의 4×4 입력은 104×60 영역을 예약합니다. `PixelRect`는 유효 크기이고 `PackedRect`는 마지막 블록까지 포함합니다. 같은 형식에서 크기가 블록 배수이면 아틀라스에 바로 영역 복사합니다. 배수가 아니면 **전체 밉 복사 오버로드**로 블록 수가 같은 정렬된 임시 텍스처에 복사한 뒤, 그 텍스처를 아틀라스에 영역 복사합니다. 두 단계 모두 `Graphics.CopyTexture`이며 디코딩·재압축·CPU 읽기가 없습니다. 영역 복사의 크기만 올림하면 원본 범위를 벗어나므로 사용할 수 없습니다. Unity의 [영역 복사 정렬 조건](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Graphics.CopyTexture.html)을 따릅니다. 임시 텍스처는 크기별로 재사용하고 GPU 완료 후 해제합니다. 원래 유효 영역 밖의 블록 texel도 그대로 보존하며 투명색이나 가장자리 복제색으로 바꾸지 않습니다.
 
-다른 형식·색 공간의 입력은 GPU에서 마지막 유효 픽셀을 복제해 목표 블록 크기의 배수까지 채웁니다. 변환용 텍스처와 인코더 출력은 크기별로 재사용합니다. 재압축 결과를 GPU 버퍼에서 압축 Texture2D로 옮기는 단계에는 네이티브 브리지가 필요합니다. BC7은 Windows x64 D3D12, ASTC는 Android ARM64 Vulkan·iOS ARM64 Metal입니다. ASTC 변환은 현재 모바일 Player용입니다. Windows에서 ASTC 목표로 대체하지 않습니다. 지원하지 않는 GPU·대상·업로드 브리지는 오류를 반환합니다. Android 실기기 검산 범위는 아래 결과를 따릅니다. iOS 실행과 모바일의 시간·발열 검증은 남아 있습니다.
+다른 형식·색 공간의 입력은 GPU에서 마지막 유효 픽셀을 복제해 목표 블록 크기의 배수까지 채웁니다. 변환용 텍스처와 인코더 출력은 크기별로 재사용합니다. 재압축 결과를 GPU 버퍼에서 압축 Texture2D로 옮기는 단계에는 네이티브 브리지가 필요합니다. BC7은 Windows x64 D3D12, ASTC는 Android ARM64 Vulkan·iOS ARM64 Metal입니다. ASTC 변환은 현재 모바일 Player용입니다. Windows에서 ASTC 목표로 대체하지 않습니다. 지원하지 않는 GPU·대상·업로드 브리지는 오류를 반환합니다. Android 실기기 검산 범위는 아래 결과를 따릅니다. iOS 실행과 Mali GPU 검증은 남아 있습니다.
 
 `mipLevel`은 각 텍스처의 **현재 GPU에 업로드된** 밉 체인에서의 번호입니다. 0은 현재 GPU 리소스의 첫 번째 밉입니다. `GraphicsTexture`의 실제 크기·밉을 사용하므로 원본 Texture2D의 논리 크기와 다를 수 있습니다. 작업이 끝날 때까지 밉 제한·스트리밍 상태와 원본을 변경하지 마십시오.
 
@@ -137,7 +183,7 @@ CompressedAtlasEntry added = atlas.GetEntry(firstNewId);
 
 한 아틀라스에는 한 번에 한 갱신 작업만 실행합니다. 이전 `AddAsync`·`RepackAsync`를 await한 뒤 추가·제거·재배치를 호출합니다. `IsUpdating`이 true인 동안에도 기존에 공개된 항목은 사용할 수 있습니다. 새 항목·텍스처·UV는 GPU 완료 뒤 함께 공개합니다. 입력·크기 오류와 GPU 작업 실패 시 이전에 공개한 항목은 유지합니다. 실패한 빈 공간 쓰기는 새 항목으로 공개하지 않습니다. 초기 패킹이 미완료이거나 이미 Dispose한 객체에는 갱신할 수 없습니다.
 
-추가 입력의 Addressables 핸들·AssetBundle도 `AddAsync`가 정상 또는 예외로 끝날 때까지 유지합니다. 실패 시에도 이미 제출한 GPU 작업을 비동기로 기다린 뒤 예외를 반환합니다. 추가 중 `Dispose`한 경우에도 반환된 Task를 기다린 뒤 입력을 해제합니다. 완료 대기는 프레임별 GPU 작업량 제한을 제공하지 않습니다.
+추가 입력의 Addressables 핸들·AssetBundle도 `AddAsync`가 정상 또는 예외로 끝날 때까지 유지합니다. 실패 시에도 이미 제출한 GPU 작업을 비동기로 기다린 뒤 예외를 반환합니다. 추가 중 `Dispose`한 경우에도 반환된 Task를 기다린 뒤 입력을 해제합니다. 프레임별 작업량 제한은 아래의 `frameBudget`으로 설정합니다.
 
 ### 제거와 재배치
 
@@ -158,7 +204,38 @@ if (atlas.TryGetEntry(keptId, out CompressedAtlasEntry current))
 }
 ```
 
-전부 제거해도 객체와 ID 카운터는 유지합니다. 빈 상태에서 재배치하면 압축 블록 하나 크기의 텍스처가 됩니다. 이 블록의 색은 보장하지 않습니다. 이후 `AddAsync`로 다시 채울 수 있습니다. 제거한 ID는 다시 유효해지지 않습니다. 재배치가 실패하거나 작업 중 Dispose되면 새 결과는 공개하지 않습니다. GPU 자원은 제출한 복사와 마지막 소비자의 fence 뒤에 해제합니다. 재배치도 완료 대기 방식이며 프레임별 GPU 작업량 한도를 제공하지 않습니다.
+전부 제거해도 객체와 ID 카운터는 유지합니다. 빈 상태에서 재배치하면 압축 블록 하나 크기의 텍스처가 됩니다. 이 블록의 색은 보장하지 않습니다. 이후 `AddAsync`로 다시 채울 수 있습니다. 제거한 ID는 다시 유효해지지 않습니다. 재배치가 실패하거나 작업 중 Dispose되면 새 결과는 공개하지 않습니다. GPU 자원은 제출한 복사와 마지막 소비자의 fence 뒤에 해제합니다.
+
+### 아틀라스 작업의 프레임 분산과 취소
+
+Play Mode 또는 Player에서 같은 `GpuAtlasFrameBudget` 객체를 여러 아틀라스에 전달합니다. 이 객체가 같은 프레임의 사용량을 합산합니다. 아틀라스마다 새 객체를 만들면 각자 예산을 사용합니다. 같은 아틀라스의 갱신 작업은 순서대로 await합니다.
+
+```csharp
+using System.Threading;
+
+// 로더 또는 매니저가 하나를 소유하고 여러 작업에 재사용합니다.
+var budget = new GpuAtlasFrameBudget(
+    copyBlocksPerFrame: 16384,
+    encodeBlocksPerFrame: 1024,
+    conversionPixelsPerFrame: 65536);
+using var cancellation = new CancellationTokenSource();
+
+var atlas = await GpuTextureAtlas.PackTexturesAsync(textures,
+    targetFormat, srgb: true, encoderShader: encoder, conversionShader: convert,
+    frameBudget: budget, cancellationToken: cancellation.Token);
+await atlas.AddAsync(moreTextures, encoderShader: encoder, conversionShader: convert,
+    frameBudget: budget, cancellationToken: cancellation.Token);
+atlas.Remove(removeId);
+await atlas.RepackAsync(frameBudget: budget, cancellationToken: cancellation.Token);
+```
+
+예산의 단위는 복사 블록 수, 압축 블록 수, 변환 픽셀 수입니다. 기본값은 위 예제와 같습니다. 변환 예산은 입력의 픽셀 한 행을 담을 수 있어야 합니다. 부족하면 입력 오류를 반환합니다. 압축 예산은 한 블록부터 설정할 수 있습니다. 블록 복사와 압축은 예산에 맞춰 직사각형 영역으로 나눕니다. 가로 블록 수보다 작은 압축 예산도 사용할 수 있습니다. 형식 변환은 픽셀 행 단위로 나눕니다. `frameBudget: null`은 기존 즉시 제출 방식입니다. 일반 Edit Mode에는 프레임 예산을 사용할 수 없습니다.
+
+예산은 **작업량 제한이며 GPU 시간(ms) 보장이 아닙니다.** 텍스처 생성과 마지막 네이티브 업로드는 한 번에 실행합니다. 부분 블록을 보존하는 whole-mip 복사도 나눌 수 없습니다. 이 복사는 다른 복사 작업이 없는 프레임에서 한 번 실행하며 복사 예산을 넘을 수 있습니다. 큰 이미지와 고품질 압축은 완료까지 많은 프레임이 필요합니다. 기기별 안정성과 실행 시간을 확인한 뒤 예산을 정합니다.
+
+Add·Repack이 진행되는 동안 렌더러는 기존 텍스처와 좌표를 사용합니다. 완료 후 새 상태를 함께 공개합니다. `CancellationToken` 취소나 `Dispose`는 이후 제출을 중단합니다. 이미 제출한 GPU 작업을 기다린 뒤 Task가 끝나므로 취소도 즉시 완료되지 않을 수 있습니다. 실패·취소된 결과는 공개하지 않습니다. 호출자는 해당 Task가 끝난 뒤 원본 로딩 핸들을 해제합니다. 작업 중에는 입력 텍스처와 밉 스트리밍 상태를 변경하지 않습니다. 씬 종료 시에도 취소 후 Task 완료와 핸들 해제를 처리해야 합니다.
+
+아틀라스와 GPU 인코더가 소유한 출력·임시 텍스처에는 `HideFlags.DontSave`를 설정합니다. 아직 렌더러에 연결하지 않았더라도 `Resources.UnloadUnusedAssets`로 제거되지 않습니다. 소유 객체의 `Dispose`가 해제를 담당합니다. 호출자가 출력 Texture2D를 직접 Destroy하거나 hideFlags를 변경하지 않습니다.
 
 ### 고정 ID를 사용하는 전용 렌더러
 
@@ -400,11 +477,13 @@ pwsh -File .\Tools\Verify-GpuAtlasAndroid.ps1
 
 이 앱은 지원하는 ASTC 블록 크기와 두 색 공간의 복사·편집을 확인합니다. ASTC 4×4의 세 품질·두 색 공간 변환 결과를 별도 블록 업로드 참조와 대조합니다. Read/Write를 끈 Android AssetBundle 입력으로 9-slice·SpriteMask도 검사합니다. 비교용 CPU readback은 검산 코드에만 있습니다. 전체 실행 시간은 검산·프레임 대기를 포함하므로 압축 속도 지표로 사용하지 않습니다. APK와 빌드 로그는 `.validation/gpu-atlas/android/`에 저장합니다. 기기별 실행 보고서·PNG·앱 로그는 그 아래 `device-<실행 시각>/`에 저장합니다. 검사 뒤 전용 앱은 기기에 남습니다.
 
+2026-10-23~24의 최신 Windows D3D12·Android Vulkan 검산에는 공유 프레임 예산도 포함했습니다. 각 플랫폼에서 두 색 공간과 세 품질의 6개 조합, 148,629픽셀 대조, 취소 24회, 작업 중 해제 6회를 통과했습니다. 동시 작업의 프레임별 최대 제출은 설정한 복사 32블록·압축 5블록·변환 136픽셀 이내였습니다. 별도 부분 블록 입력은 whole-mip 복사의 예산 초과 예외 1회도 확인했습니다. Add·Repack의 완료 전 게시 방지와 취소 후 이전 상태 유지도 대조했습니다.
+
 2026-10-23에 SM-A426N / Android 13 / Adreno 619 / Vulkan 1.1에서 전체 검산을 통과했습니다. 렌더러는 URP Forward·2D와 두 색 공간에서 122프레임·562,176픽셀을 확인했습니다. 9-slice 86프레임과 SpriteMask 24프레임을 포함하며 최대 채널 차이는 약 1.56/255입니다. 기준 오차는 Windows와 같은 2/255입니다. 최종 실행 로그에는 Unity 오류·경고가 없었습니다. 이 결과는 해당 기기와 드라이버에 한정합니다.
 
 Android 네이티브 출력은 SM-A426N에서 ASTC 4×4의 세 품질·두 색 공간을 통과했습니다. 총 7,680픽셀이 CPU로 같은 블록을 업로드한 별도 참조와 같았습니다. 이 비교는 출력 전달의 정확성을 확인하며 압축 품질·속도 측정을 대신하지 않습니다.
 
-픽셀 검산은 URP Render Scale을 실행 중에만 1로 맞춘 뒤 원래 값으로 복원합니다. 모바일 기본값 0.8의 업스케일 필터가 CPU의 1:1 참조와 섞이지 않게 합니다. 프로젝트의 렌더 배율은 바꾸지 않습니다. 검산 APK에는 `APP_UI_EDITOR_ONLY`를 추가합니다. 에디터 도구용 App UI의 모바일 터치 초기화 오류를 피하며, 아틀라스 런타임에는 이 패키지가 필요하지 않습니다.
+픽셀 검산은 URP Render Scale을 실행 중에만 1로 맞춘 뒤 원래 값으로 복원합니다. 모바일 기본값 0.8의 업스케일 필터가 CPU의 1:1 참조와 섞이지 않게 합니다. 프로젝트의 렌더 배율은 바꾸지 않습니다. 예제 프로젝트에서 AI Assistant·Inference 의존성을 제거했습니다. 이전 App UI 시작 오류를 피하기 위한 검산 빌드의 `APP_UI_EDITOR_ONLY` 설정도 유지합니다. 기본 PC 렌더러의 불필요한 SSAO 기능을 제거하여 검산 Player에서 해당 리소스 오류가 나지 않게 했습니다.
 
 Unity 6.7 D3D12에서 읽기 불가 BC7·RGBA32·DXT5 입력 10개를 두 색 공간과 세 품질로 확인했습니다. 아틀라스 6개에서 입력 18개는 그대로 복사했고 42개는 변환했습니다. 부분 블록 검산까지 포함해 직접 복사 경로 71,793픽셀과 독립 변환 참조 110,052픽셀이 일치했습니다. half 반올림도 독립 CPU 참조와 일치했습니다. 작은 밉의 아틀라스 3개, 원본 번들 해제 후 출력 유지, 출력 9개의 해제를 확인했습니다. 변환 커널은 D3D12·Android Vulkan/GLES3·iOS Metal에서 진단 없이 코드 생성을 통과했습니다.
 
@@ -416,7 +495,7 @@ Unity 6.7 D3D12에서 읽기 불가 BC7·RGBA32·DXT5 입력 10개를 두 색 �
 
 Editor와 Player 각각 최종 122프레임·562,176픽셀을 통과했습니다. 이 중 9-slice 설정은 86프레임, SpriteMask 대조는 24프레임입니다. 최대 채널 차이는 약 1.60/255이며 Bilinear·알파 블렌드·half 출력의 수치 차이를 위해 2/255 한도를 적용합니다. D3D12·Android Vulkan/GLES3·iOS Metal에서 인스턴싱 유무와 세 렌더 패스의 셰이더 단계·변형 36개가 컴파일을 통과했습니다. Editor 렌더러 결과와 Simple·Sliced·마스크 안팎·재배치 PNG는 `.validation/gpu-atlas/renderer/`에 있습니다. Player 렌더러 결과는 `.validation/gpu-atlas/player/renderer/`에 있습니다. README의 `AtlasBundleView` 예제도 현재 Unity 어셈블리를 참조해 C# 컴파일을 통과했습니다.
 
-별도 Windows Player는 읽기 불가 입력 10개를 3개 복사·7개 변환으로 처리했습니다. 직접 복사 10,752픽셀과 원본 번들 해제·GPU 재패킹 후 65,536픽셀이 일치했습니다. 추가 6회는 확장 5회와 기존 공간 사용 1회입니다. 변환 입력과 원본 해제 후 GPU 아틀라스 추가를 포함한 84,118픽셀이 참조와 같았습니다. 항목 제거 8개와 재배치 3회를 실행했고 재추가·빈 아틀라스 재사용을 포함한 272,482픽셀과 UV 좌표가 일치했습니다. CopyTexture 변경 후 다시 실행한 전체 검산은 렌더러를 포함해 350프레임이었으며 대기 중인 자원 해제는 0개였습니다. GPU 결과는 `.validation/gpu-atlas/result.json`, Player 결과는 `.validation/gpu-atlas/player/result.json`에 있습니다. Addressables 패키지 자체의 빌드와 iOS 기기 실행은 이 검산에 포함하지 않습니다. Android는 위 실기기 검산으로 확인합니다. iOS 네이티브 소스는 macOS·Xcode 컴파일과 기기 검증이 남아 있습니다.
+별도 Windows Player는 읽기 불가 입력 10개를 3개 복사·7개 변환으로 처리했습니다. 직접 복사 10,752픽셀과 원본 번들 해제·GPU 재패킹 후 65,536픽셀이 일치했습니다. 추가 6회는 확장 5회와 기존 공간 사용 1회입니다. 변환 입력과 원본 해제 후 GPU 아틀라스 추가를 포함한 84,118픽셀이 참조와 같았습니다. 항목 제거 8개와 재배치 3회를 실행했고 재추가·빈 아틀라스 재사용을 포함한 272,482픽셀과 UV 좌표가 일치했습니다. 프레임 예산을 포함한 최신 Player 검산에서도 대기 중인 자원 해제는 0개였습니다. GPU 결과는 `.validation/gpu-atlas/result.json`, Player 결과는 `.validation/gpu-atlas/player/result.json`에 있습니다. 이 Player 검산은 AssetBundle을 사용합니다. 실제 Addressables 빌드는 아래 별도 패키지 검산에서 확인합니다. Android는 위 실기기 검산으로 확인합니다. iOS 네이티브 소스는 macOS·Xcode 컴파일과 기기 검증이 남아 있습니다.
 
 CPU 경로는 다음 명령으로 별도 검산합니다.
 
@@ -438,7 +517,7 @@ BC7 GPU 인코더도 제공합니다. BC7은 PC용 4×4 형식이며 8bpp입니�
 
 ASTC의 HDR, 다중 분할, 밉 생성, 노멀 맵 전용 최적화는 없습니다. 입력은 0~1로 제한됩니다. astcenc의 전체 탐색과 같은 품질을 제공하지 않습니다. 알파 UI는 4×4부터 검토하십시오. 6×6에서는 가는 경계와 독립적인 RGB·알파 변화의 손실이 큽니다. HighQuality는 처리 비용이 큽니다. 매 프레임 사용 여부는 목표 기기의 시간·발열 측정으로 판단합니다.
 
-Windows에서 실제 GPU 인코딩과 공식 디코더 대조를 완료했습니다. **Android·iOS 기기의 시간·발열·연속 압축은 측정하지 않았습니다. 네이티브 텍스처 업로드는 실험 기능입니다.** 모바일 셰이더 코드 생성과 기기 실행은 서로 다른 검증입니다.
+Windows에서 실제 GPU 인코딩과 공식 디코더 대조를 완료했습니다. Android ASTC 4×4의 시간과 반복 편집 결과는 [모바일 성능](#android-모바일-성능)을 따릅니다. **iOS 실기기 실행은 미검증이며 네이티브 텍스처 업로드는 실험 기능입니다.** 모바일 셰이더 코드 생성과 기기 실행은 서로 다른 검증입니다.
 
 ## CPU 결과와 파일 내보내기
 
@@ -519,7 +598,7 @@ pwsh -File .\Tools\Install-AstcNativePlugins.ps1
 
 Android .so는 컴파일·링크·ELF64 AArch64 검사를 통과했습니다. Android 빌드는 ARM64와 Vulkan을 선택합니다. 현재 6.7 Editor에 Android Build Support·SDK·NDK·OpenJDK가 있습니다. APK 생성과 기기 실행은 수행하지 않았습니다.
 
-iOS에는 .mm와 Unity 인터페이스 헤더를 복사합니다. `-SkipAndroidBuild`로 iOS 소스만 설치할 수 있습니다. macOS·Xcode에서 컴파일해야 합니다. 현재 환경에는 iOS SDK가 없습니다. 두 플랫폼의 네이티브 복사·알파 표시·방향·색 공간·장시간 반복·자원 해제 검증이 남아 있습니다.
+iOS에는 .mm와 Unity 인터페이스 헤더를 복사합니다. `-SkipAndroidBuild`로 iOS 소스만 설치할 수 있습니다. macOS·Xcode에서 컴파일해야 합니다. 현재 환경에는 iOS SDK가 없습니다. Android ARM64 Vulkan은 위의 실기기 검산을 따릅니다. iOS의 네이티브 복사·알파 표시·방향·색 공간·반복 실행·자원 해제는 미검증입니다.
 
 ## 색 공간과 알파
 
@@ -533,7 +612,7 @@ ASTC·BC7의 `EncodeAsync`는 Edit Mode에서 읽기가 완료될 때까지 Edit
 
 ## 여러 프레임에 나누는 압축
 
-`AstcGpuTexture`와 `Bc7GpuTexture`에 `BeginEncode`·`EncodeNextFrame`을 제공합니다. 시작할 때 품질과 색 공간 설정을 고정합니다. 이후 Update마다 일부 블록 행을 제출합니다. 앞선 GPU fence가 남아 있으면 이번 호출은 제출을 미룹니다. CPU에서 GPU 완료를 기다리지 않습니다. Player에서는 같은 프레임에 여러 번 호출해도 압축 묶음은 최대 한 번 제출합니다.
+`AstcGpuTexture`와 `Bc7GpuTexture`에 `BeginEncode`·`EncodeNextFrame`을 제공합니다. 행보다 작은 예산에는 `EncodeNextFrameBlocks(maxBlocks)`를 사용합니다. 두 Step API는 같은 작업 상태를 사용합니다. 출력은 마지막 블록을 처리한 뒤 게시합니다. 시작할 때 품질과 색 공간 설정을 고정합니다. 이후 Update마다 일부 블록 행을 제출합니다. 앞선 GPU fence가 남아 있으면 이번 호출은 제출을 미룹니다. CPU에서 GPU 완료를 기다리지 않습니다. Player에서는 같은 프레임에 여러 번 호출해도 압축 묶음은 최대 한 번 제출합니다.
 
 ```csharp
 // output은 재사용하는 Bc7GpuTexture입니다. Update에서 호출합니다.
@@ -551,7 +630,7 @@ ASTC도 같은 순서로 호출합니다. 품질에는 `AstcQuality`를 사용�
 
 작업 중 새 BeginEncode나 일괄 EncodeFrame 호출은 거부합니다. 작업을 중단하려면 마지막 소비자의 그리기를 제출한 뒤 Dispose합니다. 스냅샷·버퍼·출력 텍스처는 GPU fence 뒤에 해제합니다. 매 프레임 CPU readback·Apply·관리 배열 할당은 없습니다. 기존 `EncodeAsync`는 전체 압축을 제출한 뒤 CPU 읽기를 비동기로 완료하는 API입니다. 프레임 분산은 GPU 작업의 제출 단위를 나누는 별도 경로입니다. Unity graphics queue를 사용합니다.
 
-블록 행 수는 엄격한 ms 제한이 아닙니다. 품질·입력 내용·기기에 따라 한 묶음의 비용이 달라집니다. 스냅샷과 마지막 텍스처 복사도 GPU 작업입니다. 여러 출력의 예산은 각각 적용되므로 호출자가 전체 작업량을 조정합니다. [프레임 분산 비교](Benchmark/Results/frame-sliced/report.html)는 알파 UI·비알파 사진 각 1장의 1024 입력에서 모든 행 묶음을 측정합니다. 일괄 압축과 4행·32행 묶음을 비교합니다. CPU 완료 읽기를 일부 포함한 처리량입니다. GPU timestamp·전체 프레임 지연·모바일 기기 시간은 아닙니다.
+블록 행 수는 엄격한 ms 제한이 아닙니다. 품질·입력 내용·기기에 따라 한 묶음의 비용이 달라집니다. 스냅샷과 마지막 텍스처 복사도 GPU 작업입니다. 단독 인코더의 예산은 출력마다 적용됩니다. 아틀라스 API에서는 같은 `GpuAtlasFrameBudget`을 전달하여 전체 제출량을 합산할 수 있습니다. [프레임 분산 비교](Benchmark/Results/frame-sliced/report.html)는 알파 UI·비알파 사진 각 1장의 1024 입력에서 모든 행 묶음을 측정합니다. 일괄 압축과 4행·32행 묶음을 비교합니다. CPU 완료 읽기를 일부 포함한 처리량입니다. GPU timestamp·전체 프레임 지연·모바일 기기 시간은 아닙니다.
 
 ```powershell
 pwsh -File .\Tools\Verify-FrameSliced.ps1
@@ -677,7 +756,7 @@ Dispose는 graphics fence 통과 후 패킷·버퍼·텍스처를 해제합니�
 
 `Bc7GpuStream`에 Encoder Shader·Source·Target Renderer를 연결하면 Update에서 압축하고 머티리얼에 표시합니다. 머티리얼에는 `_BaseMap` 또는 `_MainTex`가 필요합니다. 원본을 다른 컴포넌트의 Update에서 갱신하면 스크립트 실행 순서를 지정해 원본 갱신이 먼저 실행되게 합니다.
 
-플러그인 빌드에는 MSVC x64와 Windows SDK가 필요합니다. 기본 Editor 버전은 프로젝트의 `ProjectVersion.txt`에서 읽습니다. 설치 경로는 Unity CLI의 Editor 목록에서 찾습니다. 자동 탐색이 안 되면 `-UnityEditor`에 `Unity.exe`가 있는 폴더를 지정합니다. MSVC와 Windows SDK의 경로는 `-VisualStudio`, `-WindowsSdk`로 지정합니다. DLL은 `compute/Assets/Bc7/Plugins/Windows/x86_64/`에 설치합니다.
+플러그인 빌드에는 MSVC x64와 Windows SDK가 필요합니다. 기본 Editor 버전은 프로젝트의 `ProjectVersion.txt`에서 읽습니다. 설치 경로는 Unity CLI의 Editor 목록에서 찾습니다. 자동 탐색이 안 되면 `-UnityEditor`에 `Unity.exe`가 있는 폴더를 지정합니다. MSVC와 Windows SDK의 경로는 `-VisualStudio`, `-WindowsSdk`로 지정합니다. DLL은 `Packages/com.ittodo.gpu-texture-atlas/Plugins/Bc7/Windows/x86_64/`에 설치합니다.
 
 ```powershell
 pwsh -File .\Tools\Build-Bc7WindowsPlugin.ps1
@@ -695,6 +774,34 @@ Player 검산 도구는 `Verification/`의 소스를 임시 Unity 자산으로 �
 복사 형식과 정렬 규칙은 Microsoft의 [CopyTextureRegion](https://learn.microsoft.com/en-us/windows/win32/api/d3d12/nf-d3d12-id3d12graphicscommandlist-copytextureregion)과 [텍스처의 버퍼 배치](https://learn.microsoft.com/en-us/windows/win32/direct3d12/upload-and-readback-of-texture-data)를 따릅니다. D3D12 인터페이스 헤더는 설치된 6000.7.0b5 SDK에서 복사했습니다. 이 헤더는 6000.6.6f1과 동일합니다.
 
 ## 검산
+
+패키지 설치와 실제 Addressables 수명 검산:
+
+```powershell
+pwsh -File Tools/Verify-GpuAtlasPackage.ps1
+```
+
+이 도구는 `.validation/gpu-atlas/package-consumer-*`에 별도 프로젝트를 만듭니다. 로컬 UPM 패키지와 [Addressables 4.1.1](https://docs.unity3d.com/Packages/com.unity.addressables@4.1/manual/index.html)을 설치하고 콘텐츠와 Windows D3D12 Player를 빌드합니다. 예제 프로젝트의 AI·URP 의존성을 가져오지 않습니다. 2026-10-23 검산은 8회 반복, 입력 16개 해제, 430,080픽셀 대조, 씬 종료 중 작업 중단 1회, 샘플 렌더러 4개 생성을 통과했습니다. 이 검산은 로컬 Addressables 콘텐츠를 사용하며 원격 CDN 동작은 포함하지 않습니다.
+
+모바일 성능·반복 편집 측정 도구:
+
+```powershell
+pwsh -File Tools/Build-GpuAtlasMobileBenchmark.ps1
+pwsh -File Tools/Run-GpuAtlasMobileBenchmark.ps1 -Repetitions 1 -StressSeconds 600 -HighQualityEncodeBlocks 32
+node Tools/Report-GpuAtlasMobileBenchmark.mjs <result.json 경로>
+```
+
+세 해상도의 알파 10장·불투명 10장, 세 압축 품질, Copy·Add·Repack을 측정합니다. 기본 측정의 예열과 입력 로딩은 기록 시간에서 제외합니다. CPU 호출 시간, 완료 지연, 진행 중 프레임 분포를 따로 기록합니다. FrameTimingManager의 GPU 수치는 뒤의 8프레임까지 포함한 앱 전체 값입니다. 압축 커널 시간으로 해석하지 않습니다. 그래픽 메모리가 계속 0이면 조회 불가입니다. 호출별 관리 힙 할당은 알려진 배열을 한 번 할당해 카운터를 확인한 뒤 기록합니다. Unity 6000.7.0b5의 IL2CPP 카운터는 0을 고정 반환하므로 N/A로 표시합니다. 이를 0GC로 해석하지 않습니다. 배터리 온도는 GPU 온도가 아닙니다. 검산과 측정 파일 쓰기는 패키지 런타임에 포함하지 않습니다.
+
+`-OnlyQuality`, `-OnlyGroup`, `-OnlyScheduling`, `-Resolution`, `-InputLimit`는 실패 재현용 필터입니다. `-EncodeBlocks`와 `-HighQualityEncodeBlocks`로 압축 예산을 정합니다. 측정 도구의 기본값은 각각 128과 16블록입니다. 현재 기기에서 HighQuality 전체 제출 중 GPU 종료가 발생했으므로 기본 측정에서 해당 경로는 제외하고 사유를 기록합니다. `-IncludeHighQualityImmediate`는 그 경로의 명시적 재현용 옵션입니다.
+
+`-MaxImmediateResolution`의 기본값은 256입니다. 그보다 큰 입력은 전체 이미지 변환 제출을 측정하지 않습니다. 이 크기 제한은 측정 범위이며, 제외한 모든 경로에서 오류를 관찰했다는 뜻은 아닙니다. 분산 변환과 압축 블록 Copy·Add·Repack은 세 해상도를 모두 측정합니다. 입력별 1회 실행이면 580개 측정과 140개 제외 사유를 기록합니다. 필터 실행은 전체 측정으로 집계하지 않습니다. 앱이 종료되면 측정 도구가 실패를 보고하고 남은 기록과 로그를 보존합니다.
+
+측정 중에는 앱을 전면에 유지합니다. PC의 대기 시간이 끝나도 기기 프로세스와 결과 파일은 남습니다. `-ResumeRun <출력된 device 폴더> -TimeoutSeconds 10800`으로 같은 실행의 수집을 이어갈 수 있습니다. 이 옵션은 저장된 실행 ID와 프로세스를 확인하며 APK를 재설치하지 않습니다. 측정 도중 백그라운드로 전환되면 해당 완료 시간에 중단 시간이 포함됩니다. 그 표본은 다시 측정해야 합니다. 반복 편집 단계의 의도적인 백그라운드 검사는 별도로 수행합니다.
+
+보고서 생성기는 APK에 포함된 입력 manifest와 저장소의 PNG 60개 해시를 대조합니다. 계획한 결과의 누락·중복과 각 그룹의 표본 수도 확인합니다. APK·빌드 소스·원본 결과의 해시를 보고서에 보존합니다. 이 검산은 보고서 도구에서만 실행합니다.
+
+중단된 표본을 재측정한 경우 보고서 명령의 세 번째 인자로 교체 명세 JSON을 전달할 수 있습니다. 명세는 `originalSha256`과 `replacements` 목록을 사용합니다. 각 항목은 `resultFile`, `reason`, `id`를 지정합니다. `id`에는 `resolution`, `group`, `texture`, `operation`, `quality`, `scheduling`, `repetition`을 넣습니다. `resultFile`은 명세 파일 기준 경로입니다. 생성기는 같은 APK·기기·입력·예산인지 확인하고, 일시 중단이 없는 재측정의 지정 행만 사용합니다. 보고서에는 교체 사유와 교체 전 원본·재측정 JSON을 함께 보존합니다.
 
 Unity에서 프로젝트를 열고 Pipeline 연결을 기다립니다. `Verify-Astc.ps1`는 공식 astcenc 5.7.0 배포의 SHA-256을 확인합니다. 결과는 `.validation/`에 저장합니다. CLI가 다른 경로에 있으면 `-UnityCli`를 지정합니다.
 
@@ -738,42 +845,44 @@ CoreCLR로 전환하지 않았습니다. Pipeline 0.8.0-exp.1은 CLI 속성 어�
 
 | 경로 | 역할 |
 |---|---|
-| `compute/Assets/Astc/Shaders/AstcEncoder.compute` | Fast·Balanced·HighQuality 인코딩 |
-| `compute/Assets/Astc/Shaders/AstcTables.hlsl` | GPU 표 접근 |
-| `compute/Assets/Astc/Runtime/AstcLookup.cs` | 생성된 GPU 표 데이터 |
-| `compute/Assets/Astc/Runtime/AstcEncoder.cs` | 동기·비동기 읽기, 재사용 GPU 버퍼와 행 범위 |
-| `compute/Assets/Astc/Runtime/AstcImage.cs` | 데이터·텍스처·파일 포장 |
-| `compute/Assets/Astc/Runtime/AstcGpuTexture.cs` | 실험용 모바일 GPU 텍스처 갱신 |
-| `compute/Assets/Astc/Runtime/AstcGpuStream.cs` | 매 프레임 사용 예제 |
-| `compute/Assets/Astc/Runtime/AstcGpuRetirement.cs` | GPU 완료 후 자원 해제 |
+| `Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute` | Fast·Balanced·HighQuality 인코딩 |
+| `Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcTables.hlsl` | GPU 표 접근 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcLookup.cs` | 생성된 GPU 표 데이터 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcEncoder.cs` | 동기·비동기 읽기, 재사용 GPU 버퍼와 행 범위 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcImage.cs` | 데이터·텍스처·파일 포장 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcGpuTexture.cs` | 실험용 모바일 GPU 텍스처 갱신 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcGpuStream.cs` | 매 프레임 사용 예제 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcGpuRetirement.cs` | GPU 완료 후 자원 해제 |
 | `compute/Assets/Astc/Editor/AstcEncoderWindow.cs` | 내보내기와 기본 예제 씬 |
 | `compute/Assets/Astc/Editor/AstcValidation.cs` | 런타임과 분리된 검산 |
 | `compute/Assets/Astc/Editor/Benchmark/` | 원래 구현·스칼라 디코더·비교 측정 |
 | `compute/Assets/Astc/Editor/Benchmark/AstcPeakMetrics.cs` | RGB·알파·합성의 피크 오차와 최악 블록 계산 |
-| `compute/Assets/Bc7/Shaders/Bc7Encoder.compute` | BC7 세 품질의 진입 커널 |
-| `compute/Assets/Bc7/Shaders/Bc7HighQuality.hlsl` | 2분할 후보 선택·모드 1·3·7 탐색 |
-| `compute/Assets/Bc7/Shaders/Bc7Partitions.hlsl` | Microsoft 참조의 64개 분할·anchor 표 |
+| `Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute` | BC7 세 품질의 진입 커널 |
+| `Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7HighQuality.hlsl` | 2분할 후보 선택·모드 1·3·7 탐색 |
+| `Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Partitions.hlsl` | Microsoft 참조의 64개 분할·anchor 표 |
 | `compute/Assets/Astc/Editor/Benchmark/HighQualityBenchmark.cs` | 6.7에서 세 품질을 같은 조건으로 비교 |
-| `compute/Assets/Bc7/Runtime/` | BC7 버퍼·동기·비동기 API, 텍스처와 DDS 포장 |
-| `compute/Assets/Bc7/Runtime/Bc7GpuTexture.cs` | Windows D3D12의 GPU 버퍼→BC7 텍스처 갱신 |
-| `compute/Assets/Bc7/Runtime/Bc7GpuStream.cs` | 매 프레임 압축·표시 컴포넌트 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Bc7/` | BC7 버퍼·동기·비동기 API, 텍스처와 DDS 포장 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Bc7/Bc7GpuTexture.cs` | Windows D3D12의 GPU 버퍼→BC7 텍스처 갱신 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Bc7/Bc7GpuStream.cs` | 매 프레임 압축·표시 컴포넌트 |
 | `compute/Assets/Bc7/Editor/` | 내보내기, 별도 디코더, 하드웨어 대조와 비교 측정 |
 | `Tools/Run-Bc7Benchmark.ps1` | 같은 60개 입력의 GPU·Unity BC7 비교 |
 | `Tools/Run-HighQualityBenchmark.ps1` | 세 해상도의 540개 GPU 비교 |
-| `compute/Assets/TextureCompression/Runtime/FrameSlicedGpuJob.cs` | GPU 스냅샷·프레임별 제출·fence 진행 관리 |
-| `compute/Assets/TextureCompression/Runtime/CompressedAtlas.cs` | 압축 Texture2D·블록 바이트의 아틀라스 패킹과 텍스처 생성 |
-| `compute/Assets/TextureCompression/Runtime/CompressedAtlasSource.cs` | GetPixelData로 선택한 밉의 압축 바이트 읽기 |
-| `compute/Assets/TextureCompression/Runtime/CompressedAtlasSampling.hlsl` | 이미지별 UV 변환과 유효 픽셀 경계 제한 |
-| `compute/Assets/TextureCompression/Runtime/BlockAtlasLayout.cs` | CPU·GPU 경로가 공유하는 블록 배치 계산 |
-| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.cs` | Read/Write 없는 직접 복사와 다른 입력만 GPU 변환 |
-| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.Addition.cs` | 기존 위치를 유지하는 추가·확장과 공통 GPU 입력 처리 |
-| `compute/Assets/TextureCompression/Runtime/GpuTextureAtlas.Editing.cs` | ID 조회·제거·남은 압축 블록의 GPU 재배치 |
-| `compute/Assets/TextureCompression/Runtime/GpuAtlasRenderer.cs` | 고정 ID 렌더러·9-slice·SpriteMask·크기·색상·반전·정렬 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/FrameSlicedGpuJob.cs` | GPU 스냅샷·프레임별 제출·fence 진행 관리 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/GpuAtlasFrameBudget.cs` | 동시 아틀라스 작업의 프레임별 복사·변환·압축 예산 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/GpuTextureAtlas.Scheduling.cs` | 분할 제출·입력 정규화·취소 확인 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/CompressedAtlas.cs` | 압축 Texture2D·블록 바이트의 아틀라스 패킹과 텍스처 생성 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/CompressedAtlasSource.cs` | GetPixelData로 선택한 밉의 압축 바이트 읽기 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/CompressedAtlasSampling.hlsl` | 이미지별 UV 변환과 유효 픽셀 경계 제한 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/BlockAtlasLayout.cs` | CPU·GPU 경로가 공유하는 블록 배치 계산 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/GpuTextureAtlas.cs` | Read/Write 없는 직접 복사와 다른 입력만 GPU 변환 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/GpuTextureAtlas.Addition.cs` | 기존 위치를 유지하는 추가·확장과 공통 GPU 입력 처리 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/GpuTextureAtlas.Editing.cs` | ID 조회·제거·남은 압축 블록의 GPU 재배치 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/GpuAtlasRenderer.cs` | 고정 ID 렌더러·9-slice·SpriteMask·크기·색상·반전·정렬 |
 | `compute/Assets/Settings/GpuAtlas2D_Renderer.asset` | SpriteMask용 URP 2D Renderer. PC·Mobile 파이프라인의 Renderer 목록 1번 |
-| `compute/Assets/TextureCompression/Runtime/GpuAtlasRenderState.cs` | 아틀라스별 공유 재질·격자 메시·GPU ID 조회 표와 자원 수명 |
-| `compute/Assets/TextureCompression/Resources/GpuAtlasUnlit.shader` | Built-in·URP Forward·Universal2D의 Unlit 렌더 패스 |
-| `compute/Assets/TextureCompression/Resources/GpuAtlasRender.hlsl` | 정수 ID 해시 조회·유효 여부·UV 경계 제한 |
-| `compute/Assets/TextureCompression/Shaders/GpuAtlasConvert.compute` | 선형 RGB로 읽기·목표 블록 크기까지 가장자리 채우기 |
+| `Packages/com.ittodo.gpu-texture-atlas/Runtime/Atlas/GpuAtlasRenderState.cs` | 아틀라스별 공유 재질·격자 메시·GPU ID 조회 표와 자원 수명 |
+| `Packages/com.ittodo.gpu-texture-atlas/Resources/GpuAtlasUnlit.shader` | Built-in·URP Forward·Universal2D의 Unlit 렌더 패스 |
+| `Packages/com.ittodo.gpu-texture-atlas/Resources/GpuAtlasRender.hlsl` | 정수 ID 해시 조회·유효 여부·UV 경계 제한 |
+| `Packages/com.ittodo.gpu-texture-atlas/Shaders/Atlas/GpuAtlasConvert.compute` | 선형 RGB로 읽기·목표 블록 크기까지 가장자리 채우기 |
 | `compute/Assets/TextureCompression/Editor/GpuAtlasCopyValidation.cs` | CopyTexture의 부분 블록·밉·추가·재배치 검산 |
 | `Tools/Build-GpuAtlasAndroidProbe.ps1`, `Tools/Verify-GpuAtlasAndroid.ps1` | Android Vulkan 검산 앱 빌드·설치·실행·보고서 수집 |
 | `Verification/GpuAtlasAndroidProbe.cs` | ASTC 실기기 복사·변환·렌더러 검산 앱 |
@@ -783,6 +892,11 @@ CoreCLR로 전환하지 않았습니다. Pipeline 0.8.0-exp.1은 CLI 속성 어�
 | `compute/Assets/TextureCompression/Editor/GpuAtlasRendererValidation.cs` | 실제 카메라 출력·독립 CPU 참조·플랫폼 셰이더·Player 공통 검산 |
 | `Tools/Verify-GpuAtlasPlayer.ps1` | 별도 Windows Player의 GPU 패킹·재패킹·로더 수명 검산 |
 | `Verification/GpuAtlasPlayerProbe.cs` | 일반 런타임과 분리된 Player 검산 소스 |
+| `Verification/GpuAtlasSchedulingValidation.cs` | 동시 예산·부분 블록·취소·작업 중 해제 검산 |
+| `Tools/Verify-GpuAtlasPackage.ps1` | 별도 프로젝트에서 UPM·Addressables·샘플 검산 |
+| `Tools/Build-GpuAtlasMobileBenchmark.ps1`, `Tools/Run-GpuAtlasMobileBenchmark.ps1` | Android 성능·반복 편집 측정 앱 빌드와 실행 |
+| `Tools/Report-GpuAtlasMobileBenchmark.mjs` | 전체 표본·제외 사유 확인과 모바일 보고서 생성 |
+| `Packages/com.ittodo.gpu-texture-atlas/Samples~/DynamicAtlas/` | Package Manager에서 설치하는 조작 가능한 샘플 |
 | `Tools/Verify-CompressedAtlas.ps1` | 블록 보존·배치·UV·TextureImporter·AssetBundle 검산 |
 | `Tools/Verify-FrameSliced.ps1` | 분할 바이트·게시·스냅샷·0GC·플랫폼 컴파일 검산 |
 | `Tools/Run-FrameSlicedBenchmark.ps1` | 1024 대표 입력 2개의 일괄·행 묶음 처리량 측정 |
@@ -797,7 +911,7 @@ CoreCLR로 전환하지 않았습니다. Pipeline 0.8.0-exp.1은 CLI 속성 어�
 | `Verification/Bc7GpuPlayerProbe.cs` | 정상 런타임과 분리된 Player 검산 소스 |
 | `Tools/Update-AstcPeakMetrics.ps1` | 저장된 복원 이미지에서 피크 지표 갱신 |
 | `Native/` | D3D12·Vulkan·Metal 브리지의 기준 소스와 외부 헤더 |
-| `compute/Assets/Astc/Plugins/` | Unity에 설치한 네이티브 산출물 |
+| `Packages/com.ittodo.gpu-texture-atlas/Plugins/Astc/` | Unity에 설치한 네이티브 산출물 |
 | `Benchmark/Input/manifest.json` | 입력 60개의 크기·알파 통계·SHA-256 |
 | `Benchmark/Sources/sources.json` | 원본 출처·라이선스·SHA-256 |
 | `Benchmark/Results/report.html` | 현재 비교 보고서 |

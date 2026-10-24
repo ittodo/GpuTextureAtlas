@@ -31,6 +31,8 @@ namespace UnityCompute.TextureCompression.Verification
             string reportPath = Argument("-gpu-atlas-report");
             try
             {
+                await GpuAtlasSchedulingValidation.Run(TextureFormat.BC7, encoderShader, conversionShader, readShader,
+                    Path.Combine(Path.GetDirectoryName(reportPath), "scheduling"));
                 await GpuAtlasRendererValidation.Run(Argument("-gpu-atlas-bundle"), encoderShader, conversionShader, readShader,
                     Path.Combine(Path.GetDirectoryName(reportPath), "renderer")); report.rendererPassed = true;
                 bundle = AssetBundle.LoadFromFile(Argument("-gpu-atlas-bundle")); Require(bundle != null, "Cannot load verification bundle.");

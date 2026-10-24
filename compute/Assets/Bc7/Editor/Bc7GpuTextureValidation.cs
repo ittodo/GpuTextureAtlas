@@ -40,7 +40,7 @@ namespace UnityCompute.Bc7.Editor
             try
             {
                 await Task.Yield();
-                var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute");
+                var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute");
                 using var reference=new Bc7Encoder(shader);
                 foreach(var quality in new[]{Bc7Quality.Fast,Bc7Quality.Balanced,Bc7Quality.HighQuality})foreach(bool srgb in new[]{false,true})
                 foreach(var size in new[]{new Vector2Int(1,1),new Vector2Int(17,13),new Vector2Int(64,4),new Vector2Int(65,33),new Vector2Int(256,256),new Vector2Int(512,512),new Vector2Int(1024,1024)})
@@ -106,7 +106,7 @@ namespace UnityCompute.Bc7.Editor
         }
         static void Fill(RenderTexture target,int frame)
         {
-            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7StreamValidation.compute");
+            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7StreamValidation.compute");
             int kernel=shader.FindKernel("Fill");shader.SetInts("_Size",target.width,target.height);shader.SetInt("_Frame",frame);shader.SetTexture(kernel,"_Target",target);
             shader.Dispatch(kernel,(target.width+7)/8,(target.height+7)/8,1);
         }
@@ -141,7 +141,7 @@ namespace UnityCompute.Bc7.Editor
         }
         static uint[] Read(Texture source,int width,int height)
         {
-            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7DecodeHardware.compute");
+            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7DecodeHardware.compute");
             int kernel=shader.FindKernel("DecodeHardware");using var pixels=new ComputeBuffer(width*height,4);
             shader.SetInts("_Size",width,height);shader.SetTexture(kernel,"_Source",source);shader.SetBuffer(kernel,"_Pixels",pixels);
             shader.Dispatch(kernel,(width+7)/8,(height+7)/8,1);var words=new uint[pixels.count];pixels.GetData(words);return words;

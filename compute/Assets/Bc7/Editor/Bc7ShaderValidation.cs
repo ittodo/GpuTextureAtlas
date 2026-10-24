@@ -12,8 +12,8 @@ namespace UnityCompute.Bc7.Editor
     {
         public static string Run()
         {
-            const string source="Assets/Bc7/Shaders/Bc7Encoder.compute",probe="Assets/Bc7/Shaders/Bc7CompileProbe.compute";
-            File.Copy(source,probe,true);AssetDatabase.ImportAsset(probe,ImportAssetOptions.ForceUpdate|ImportAssetOptions.ForceSynchronousImport);
+            const string source="Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute",probe="Assets/Bc7/Editor/Bc7CompileProbe.compute";
+            UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.CopyShaderProbe(source,probe);AssetDatabase.ImportAsset(probe,ImportAssetOptions.ForceUpdate|ImportAssetOptions.ForceSynchronousImport);
             try
             {
                 var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>(probe);

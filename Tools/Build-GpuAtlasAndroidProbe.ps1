@@ -10,17 +10,20 @@ New-Item -ItemType Directory -Path $temporary -Force | Out-Null
 New-Item -ItemType Directory -Path $output -Force | Out-Null
 try {
     Copy-Item -LiteralPath (Join-Path $root 'Verification/GpuAtlasAndroidProbe.cs') -Destination $temporary
+    Copy-Item -LiteralPath (Join-Path $root 'Verification/GpuAtlasSchedulingValidation.cs') -Destination $temporary
     foreach ($name in @('GpuAtlasCopyValidation.cs','GpuAtlasRendererValidation.cs')) {
         [IO.File]::WriteAllText((Join-Path $temporary $name), "#define GPU_ATLAS_PLAYER_PROBE`n" + [IO.File]::ReadAllText((Join-Path $project "Assets/TextureCompression/Editor/$name")))
     }
     Copy-Item -LiteralPath (Join-Path $project 'Assets/TextureCompression/Editor/GpuAtlasValidation.compute') -Destination $temporary
     $log = Join-Path $output 'build.log'
     $arguments = '-batchmode -force-d3d12 -buildTarget Android -projectPath "' + $project + '" -executeMethod UnityCompute.TextureCompression.Editor.GpuAtlasAndroidBuild.RunBatch -logFile "' + $log + '"'
-    $process = Start-Process -FilePath $UnityEditor -ArgumentList $arguments -WindowStyle Hidden -Wait -PassThru
+    $process = Start-Process -FilePath $UnityEditor -ArgumentList $arguments -WindowStyle Hidden -PassThru
+    # Wait for Unity itself. Its shared licensing client can remain alive after a successful build.
+    $process.WaitForExit()
     if ($process.ExitCode -ne 0) { throw "Android verification build failed (exit $($process.ExitCode)). See $log" }
     Get-Item -LiteralPath (Join-Path $output 'GpuAtlasVerification.apk') | Select-Object FullName,Length,LastWriteTime
 } finally {
-    foreach ($name in @('GpuAtlasAndroidProbe.cs','GpuAtlasCopyValidation.cs','GpuAtlasRendererValidation.cs','GpuAtlasValidation.compute','Probe.unity')) {
+    foreach ($name in @('GpuAtlasAndroidProbe.cs','GpuAtlasSchedulingValidation.cs','GpuAtlasCopyValidation.cs','GpuAtlasRendererValidation.cs','GpuAtlasValidation.compute','Probe.unity')) {
         foreach ($path in @((Join-Path $temporary $name),(Join-Path $temporary ($name + '.meta')))) {
             if (Test-Path -LiteralPath $path) { Remove-Item -LiteralPath $path }
         }

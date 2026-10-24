@@ -1,0 +1,17 @@
+{
+    "passed": true,
+    "incremental": true,
+    "resurrectionConfirmed": true,
+    "transientExpected": 10000,
+    "retainedExpected": 2000,
+    "finalizableExpected": 100,
+    "finalized": 100,
+    "resurrectedFinalized": 1,
+    "sampleViews": 4,
+    "gcBefore": 9,
+    "gcAfter": 39,
+    "unity": "6000.7.0b5",
+    "device": "samsung SM-A426N",
+    "gpu": "Adreno (TM) 619",
+    "error": ""
+}

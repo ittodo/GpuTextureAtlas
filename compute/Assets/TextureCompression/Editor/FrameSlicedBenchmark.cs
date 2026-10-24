@@ -28,10 +28,10 @@ namespace UnityCompute.TextureCompression.Editor
         public static string Run()
         {
             string root = Path.GetFullPath(Path.Combine(Application.dataPath, "../../"));
-            var astcShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Astc/Shaders/AstcEncoder.compute");
-            var bc7Shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute");
+            var astcShader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute");
+            var bc7Shader = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute");
             using var astc = new AstcEncoder(astcShader); using var bc7 = new Bc7Encoder(bc7Shader);
-            string Hash(string p) { using var hash = SHA256.Create(); return BitConverter.ToString(hash.ComputeHash(File.ReadAllBytes(p))).Replace("-", ""); }
+            string Hash(string p) { using var hash = SHA256.Create(); return BitConverter.ToString(hash.ComputeHash(File.ReadAllBytes(UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.FilePath(p)))).Replace("-", ""); }
             var report = new Report { unity = Application.unityVersion, utc = DateTime.UtcNow.ToString("O"), gpu = SystemInfo.graphicsDeviceName,
                 api = SystemInfo.graphicsDeviceType.ToString(), astcSha256 = Hash(AssetDatabase.GetAssetPath(astcShader)), bc7Sha256 = Hash(AssetDatabase.GetAssetPath(bc7Shader)),
                 methodology = "Two representative canonical 1024 inputs, not the full 60-input quality corpus. At least 200 ms full-image GPU warmup per profile and two untimed dispatches per measured range. Reused buffer throughput; median of 3 batches of 4 dispatches, final GetData amortized per dispatch. Every row band is measured, including the shorter final band. Snapshot, final native texture copy and rendering are excluded. These are not GPU timestamps, per-frame latency, or a strict time budget. Clocks are not pinned. No mobile timing claims." };

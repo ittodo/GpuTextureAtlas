@@ -42,8 +42,8 @@ namespace UnityCompute.TextureCompression.Editor
             var atlases = new List<GpuTextureAtlas>(); AssetBundle bundle = null;
             Directory.CreateDirectory(Root); AssetDatabase.CreateFolder("Assets", "__GpuAtlasValidation");
             var decoder = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/TextureCompression/Editor/GpuAtlasValidation.compute");
-            var convert = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/TextureCompression/Shaders/GpuAtlasConvert.compute");
-            var encoder = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute");
+            var convert = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Atlas/GpuAtlasConvert.compute");
+            var encoder = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute");
             try
             {
                 var paths = new List<string>();
@@ -156,6 +156,7 @@ namespace UnityCompute.TextureCompression.Editor
             try
             {
                 int kernel = convert.FindKernel("ConvertAndPad"); convert.SetInts("_InputSize", source.width, source.height); convert.SetInts("_OutputSize", width, height); convert.SetInt("_SourceMip", 0);
+                convert.SetInt("_FirstRow", 0); convert.SetInt("_RowCount", height);
                 convert.SetTexture(kernel, "_Source", source); convert.SetTexture(kernel, "_Output", stage); convert.Dispatch(kernel, (width + 7) / 8, (height + 7) / 8, 1);
                 var a = Read(reference, width, height, 0, decoder); var b = Read(stage, width, height, 0, decoder); int differing = 0; float maximum = 0;
                 var lines = new List<string>();
@@ -168,8 +169,8 @@ namespace UnityCompute.TextureCompression.Editor
         }
         public static string RunCompilers()
         {
-            const string source = "Assets/TextureCompression/Shaders/GpuAtlasConvert.compute", probe = "Assets/TextureCompression/Shaders/GpuAtlasCompileProbe.compute";
-            File.Copy(source, probe, true); AssetDatabase.ImportAsset(probe, ImportAssetOptions.ForceSynchronousImport);
+            const string source = "Packages/com.ittodo.gpu-texture-atlas/Shaders/Atlas/GpuAtlasConvert.compute", probe = "Assets/TextureCompression/Editor/GpuAtlasCompileProbe.compute";
+            UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.CopyShaderProbe(source, probe); AssetDatabase.ImportAsset(probe, ImportAssetOptions.ForceSynchronousImport);
             try
             {
                 var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>(probe);

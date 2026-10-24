@@ -1,0 +1,7 @@
+{
+  "name": "UnityCompute.GpuTextureAtlas",
+  "rootNamespace": "UnityCompute",
+  "references": [],
+  "allowUnsafeCode": false,
+  "autoReferenced": true
+}

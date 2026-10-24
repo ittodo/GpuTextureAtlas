@@ -46,7 +46,7 @@ try{
     if($LASTEXITCODE -ne 0){throw 'BC7 D3D12 native build failed.'}
 }finally{$env:INCLUDE=$savedInclude;$env:LIB=$savedLib;$env:PATH=$savedPath}
 if(-not $NoInstall){
-    $destination=Join-Path $root 'compute/Assets/Bc7/Plugins/Windows/x86_64'
+    $destination=Join-Path $root 'Packages/com.ittodo.gpu-texture-atlas/Plugins/Bc7/Windows/x86_64'
     New-Item -ItemType Directory -Path $destination -Force|Out-Null
     Copy-Item -LiteralPath $library -Destination $destination -Force
 }

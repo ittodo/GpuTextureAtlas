@@ -23,9 +23,9 @@ namespace UnityCompute.Bc7.Editor
         public static string Run(string folder="bc7",int limit=0)
         {
             string directory=Path.Combine(Root,"Results",folder);Directory.CreateDirectory(directory);
-            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Bc7/Shaders/Bc7Encoder.compute");
+            var shader=AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute");
             using var encoder=new Bc7Encoder(shader);
-            string Hash(string path){using var h=SHA256.Create();return BitConverter.ToString(h.ComputeHash(File.ReadAllBytes(path))).Replace("-","");}
+            string Hash(string path){using var h=SHA256.Create();return BitConverter.ToString(h.ComputeHash(File.ReadAllBytes(UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.FilePath(path)))).Replace("-","");}
             var report=new AstcBenchmark.Measurements
             {
                 utc=DateTime.UtcNow.ToString("O"),unity=Application.unityVersion,gpu=SystemInfo.graphicsDeviceName,

@@ -36,7 +36,7 @@ namespace UnityCompute.Astc.Editor
         /// <summary>Reuses canonical decoded PNGs. Does not rerun compression or change timing measurements.</summary>
         public static string RefreshPeakMetrics()
         {
-            string Hash(string path) { using var h = SHA256.Create(); return BitConverter.ToString(h.ComputeHash(File.ReadAllBytes(path))).Replace("-", ""); }
+            string Hash(string path) { using var h = SHA256.Create(); return BitConverter.ToString(h.ComputeHash(File.ReadAllBytes(UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.FilePath(path)))).Replace("-", ""); }
             string manifestHash = Hash(Path.Combine(Root, "Input/manifest.json"));
             var originals = new Dictionary<string, Color32[]>();
             int updated = 0;
@@ -90,12 +90,12 @@ namespace UnityCompute.Astc.Editor
             string output = Path.Combine(Root, "Results", version);
             Directory.CreateDirectory(output);
             var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>(version == "baseline" ?
-                "Assets/Astc/Editor/Benchmark/AstcBaseline.compute" : "Assets/Astc/Shaders/AstcEncoder.compute");
+                "Assets/Astc/Editor/Benchmark/AstcBaseline.compute" : "Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute");
             if (shader == null) throw new InvalidOperationException("Benchmark shader is missing.");
             using var encoder = new AstcEncoder(shader);
             AstcQuality quality = version.StartsWith("fast", StringComparison.Ordinal) ? AstcQuality.Fast : AstcQuality.Balanced;
             string shaderPath = AssetDatabase.GetAssetPath(shader);
-            string Hash(string path) { using var hash = SHA256.Create(); return BitConverter.ToString(hash.ComputeHash(File.ReadAllBytes(path))).Replace("-", ""); }
+            string Hash(string path) { using var hash = SHA256.Create(); return BitConverter.ToString(hash.ComputeHash(File.ReadAllBytes(UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.FilePath(path)))).Replace("-", ""); }
             var report = new Measurements { utc = DateTime.UtcNow.ToString("O"), unity = Application.unityVersion,
                 shaderSha256 = Hash(shaderPath), inputManifestSha256 = Hash(Path.Combine(Root, "Input/manifest.json")),
                 gpu = SystemInfo.graphicsDeviceName, cpu = SystemInfo.processorType, api = SystemInfo.graphicsDeviceType.ToString(),
@@ -254,7 +254,7 @@ namespace UnityCompute.Astc.Editor
         internal static Texture2D Load(string path)
         {
             var image = new Texture2D(2, 2, TextureFormat.RGBA32, false, true);
-            if (!image.LoadImage(File.ReadAllBytes(path))) { Object.DestroyImmediate(image); throw new IOException(path); }
+            if (!image.LoadImage(File.ReadAllBytes(UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.FilePath(path)))) { Object.DestroyImmediate(image); throw new IOException(path); }
             return image;
         }
         internal static void SaveRows(string path, int width, int height, Color32[] colors)

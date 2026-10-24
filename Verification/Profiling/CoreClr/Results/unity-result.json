@@ -1,0 +1,11 @@
+{
+    "passed": true,
+    "error": "",
+    "unity": "6000.7.0b5",
+    "gpu": "NVIDIA GeForce RTX 3070 Ti Laptop GPU",
+    "cycles": 8,
+    "exactPixels": 430080,
+    "releasedInputs": 16,
+    "sceneCancellations": 1,
+    "sampleViews": 4
+}

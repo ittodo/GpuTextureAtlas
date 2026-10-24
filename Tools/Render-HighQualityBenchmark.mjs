@@ -11,7 +11,7 @@ const rows=runs.flatMap(run=>run.rows.map(e=>({...e.measurement,...Object.fromEn
 if(manifest.length!==60||rows.length!==540)throw Error('Expected 60 inputs and 540 matched GPU rows.');
 for(const run of runs)if(run.rows.length!==180||run.manifestSha256!==hash('Benchmark/Input/manifest.json'))throw Error('Incomplete resolution or changed manifest.');
 const changedImplementation=[];
-for(const [key,file] of Object.entries({astcSha256:'compute/Assets/Astc/Shaders/AstcEncoder.compute',bc7Sha256:'compute/Assets/Bc7/Shaders/Bc7Encoder.compute',bc7HighQualitySha256:'compute/Assets/Bc7/Shaders/Bc7HighQuality.hlsl',bc7PartitionsSha256:'compute/Assets/Bc7/Shaders/Bc7Partitions.hlsl',pluginSha256:'compute/Assets/Bc7/Plugins/Windows/x86_64/Bc7GpuUpload.dll',astcRuntimeSha256:'compute/Assets/Astc/Runtime/AstcEncoder.cs',bc7RuntimeSha256:'compute/Assets/Bc7/Runtime/Bc7Encoder.cs'})){
+for(const [key,file] of Object.entries({astcSha256:'Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute',bc7Sha256:'Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Encoder.compute',bc7HighQualitySha256:'Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7HighQuality.hlsl',bc7PartitionsSha256:'Packages/com.ittodo.gpu-texture-atlas/Shaders/Bc7/Bc7Partitions.hlsl',pluginSha256:'Packages/com.ittodo.gpu-texture-atlas/Plugins/Bc7/Windows/x86_64/Bc7GpuUpload.dll',astcRuntimeSha256:'Packages/com.ittodo.gpu-texture-atlas/Runtime/Astc/AstcEncoder.cs',bc7RuntimeSha256:'Packages/com.ittodo.gpu-texture-atlas/Runtime/Bc7/Bc7Encoder.cs'})){
   if(runs.some(run=>run[key]!==runs[0][key])||!/^[A-F0-9]{64}$/.test(runs[0][key]))throw Error(`Mixed implementation in benchmark: ${key}`);
   if(runs[0][key]!==hash(file))changedImplementation.push(file);
 }

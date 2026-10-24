@@ -1,0 +1,170 @@
+[
+  {
+    "sha256": "674788CAC6272B7D5B3057342DB7289D2C7C14DA5855433792675290FAC1FC8F",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Integrations\\URP\\GpuAtlasUrpMaskSupport.cs"
+  },
+  {
+    "sha256": "0E28E8069AB6BAE38932F70E1A1F69294B6330CAB04E82592C2849BDF16B01E4",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Plugins\\Astc\\Android\\arm64-v8a\\libAstcGpuUpload.so"
+  },
+  {
+    "sha256": "99C6E5F513728D7016E4799C4A09E2A63B81878F5468BA898A81F8369AA269DA",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Plugins\\Astc\\iOS\\AstcGpuUploadMetal.mm"
+  },
+  {
+    "sha256": "C4374B6221F92D21B64FB2917E7B0D5EAD1F5D8B96A2419528D91598F75572C5",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Plugins\\Bc7\\Windows\\x86_64\\Bc7GpuUpload.dll"
+  },
+  {
+    "sha256": "0B50BDC425529A2A52ECE84F55CEAD6DB158D2C1563C61A43B2456B027ACAFE1",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Resources\\GpuAtlasRender.hlsl"
+  },
+  {
+    "sha256": "42CF453EF26F56ACD82D8ED1AA843045A894099EF453C61AB1D6BCBE94E9C63A",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Resources\\GpuAtlasUnlit.shader"
+  },
+  {
+    "sha256": "6F44FAE092E92A23A227F8CEC18F582F978253C283C04F36BA50273A3733A308",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\AssemblyInfo.cs"
+  },
+  {
+    "sha256": "35616F1690C7E0F923E81F7611745D8FD5EC62DEC9148EC012CA32116D1E0D24",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Astc\\AstcEncoder.cs"
+  },
+  {
+    "sha256": "4E5A49A09E11690514EFB01B51A23DC02BF8E18BBD5649ED19F31D9E8660B7FB",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Astc\\AstcGpuRetirement.cs"
+  },
+  {
+    "sha256": "FCD4575577CD15C6B7C20D6B1E622F62634D067428004572515414056B48745D",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Astc\\AstcGpuStream.cs"
+  },
+  {
+    "sha256": "23E317975CB47AF9EF1FAB5BB9FC0925639AF3BA430F3BEFD5D6EA3AEE039197",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Astc\\AstcGpuTexture.cs"
+  },
+  {
+    "sha256": "0294AC379FC4A8C3A8F43284FDE23CBE21CA5EE2E909FD408364A52D178187E8",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Astc\\AstcImage.cs"
+  },
+  {
+    "sha256": "BB6001F25FEE82D0B872872CF38AF1C6708D6169A7BE6F78E6068BECF65D9F04",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Astc\\AstcLookup.cs"
+  },
+  {
+    "sha256": "57F8828E406A9588B66F3AFE896BE5051DC4AB8726ADE1533E9FAA29EEDFABCE",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\BlockAtlasLayout.cs"
+  },
+  {
+    "sha256": "2AE6DD7348944D50978BAE0C50DE9726061384379C9CA837197D616940B21D7B",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\CompressedAtlas.cs"
+  },
+  {
+    "sha256": "577F5CE85BF8CA639F3E28FE45688EF441A1E5A9A70F35430C4D9BC9D834941F",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\CompressedAtlasSampling.hlsl"
+  },
+  {
+    "sha256": "8C0416F7D871363F72FBCEE28522F9BCF380547F7DA09D39DF66453F20C04D0F",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\CompressedAtlasSource.cs"
+  },
+  {
+    "sha256": "220CB959A0F83D7123A3B2568874F0716AEB5781170C049A133354ED3BE774B8",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\FrameSlicedGpuJob.cs"
+  },
+  {
+    "sha256": "5B1D9AD266E90102BB8A07B39F810486D5A822FE98D8D0CEB5178F4F69A5BD21",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuAtlasFrameBudget.cs"
+  },
+  {
+    "sha256": "280207DC30FACCCF0B3B72B6AB394E76E3B7D30A845129937A0DB1B3691FB29D",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuAtlasMaskBridge.cs"
+  },
+  {
+    "sha256": "6D1CB2149AE7B20DD7B263C3816CEB4B9BF1254B52603F103152404F8C1BCBEF",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuAtlasRenderer.cs"
+  },
+  {
+    "sha256": "A2C884270B3CC5E27C1683483A4116A35A8A347A5F6E2C477456756DEF9B5486",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuAtlasRenderState.cs"
+  },
+  {
+    "sha256": "62CC47BA9CFCAF1B9F8982C8DA0F2CDA92E788A54235670E4EC7BA3BA6827039",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuAtlasRetirement.cs"
+  },
+  {
+    "sha256": "6EF83948A19F64D6A6A341A94CB89A268130F4AEA3689058DE5630EC108EF0B6",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuTextureAtlas.Addition.cs"
+  },
+  {
+    "sha256": "6DA3AD082205B658424B1F57D653893B53231812BE1F365F89E2635A6BD634DA",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuTextureAtlas.cs"
+  },
+  {
+    "sha256": "F6CEE7EB9ACEB4C728D60A6AB4A5ADC215839B11B0BFEB0AFFA7C58B3E5265B8",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuTextureAtlas.Editing.cs"
+  },
+  {
+    "sha256": "24620C85363F35583AC41D4D0B0E951FC4FA90985BAB2E3019CC683914B7F208",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Atlas\\GpuTextureAtlas.Scheduling.cs"
+  },
+  {
+    "sha256": "FBC9C4F33FE2BAEF524FE53C86B805CAA7258F0B132463292A86DAEB08F097EB",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Bc7\\Bc7Encoder.cs"
+  },
+  {
+    "sha256": "35F4B9A484A9790281912EC1E6C21AB9FD6221DE755ABE483B854806CEF3F347",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Bc7\\Bc7GpuRetirement.cs"
+  },
+  {
+    "sha256": "1065E72529FCB180DFF62F7B958AC5646A83A4A2293A7AE8D08174986238A433",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Bc7\\Bc7GpuStream.cs"
+  },
+  {
+    "sha256": "F5F18E095F07FBB8F8E52B1DB0AC4CA5D17A730858E567C1397CFB28B0D79291",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Bc7\\Bc7GpuTexture.cs"
+  },
+  {
+    "sha256": "97AFFF795680E26EB55EAFBEC90DDA48BD62CD4A39B180D9D77B54BE23552E8A",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Runtime\\Bc7\\Bc7Image.cs"
+  },
+  {
+    "sha256": "89A059B7C76B313C41BB04A3A6A3E458B8AF6E2F8E1AC6B5B28C0605B17F1249",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Samples~\\DynamicAtlas\\DynamicAtlasDemo.cs"
+  },
+  {
+    "sha256": "5D3E12C4A85207FF49D7E711B63A66F22D2C02F50ABC145934CCD629081BAA86",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Samples~\\DynamicAtlas\\Editor\\CreateDemoScene.cs"
+  },
+  {
+    "sha256": "4DCF445CDA94A1E799A5B1623FF53B7A5CD5075FB3D1FB9E899EA0527358BDA0",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Astc\\AstcEncoder.compute"
+  },
+  {
+    "sha256": "6F1FA272527F4DE8B45E51F59FC28B2850576B25A2C84B4AB0775B39C4A9132F",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Astc\\AstcTables.hlsl"
+  },
+  {
+    "sha256": "44378F7BE7801850B5105D95D96C1A8D6C7FE87E0C49907BEC5D68D20FC5E553",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Atlas\\GpuAtlasConvert.compute"
+  },
+  {
+    "sha256": "079694126546CAE3E466F98AE3E6B2B69930FD56FEFD6A0443076E05015DE63F",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Bc7\\Bc7DecodeHardware.compute"
+  },
+  {
+    "sha256": "6719A5E627AF2FD26DDA06EABE04DE00FE54C568F2AA15C44E070AD72BAB2B50",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Bc7\\Bc7Encoder.compute"
+  },
+  {
+    "sha256": "D7D22A5BBE2E2B35C90B129F69061C6E6489FC55817E9A51C4F5565F8CF26AE0",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Bc7\\Bc7HighQuality.hlsl"
+  },
+  {
+    "sha256": "D8B18094F5297DC82D4794C224711C45589938F5540EB7C3E7F17E998EF1E8DC",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Bc7\\Bc7Partitions.hlsl"
+  },
+  {
+    "sha256": "774DF1CFE1B83C75759047E8056E43111032CD592EE1EC3B8EDCE6BEFA4A003D",
+    "path": "Packages\\com.ittodo.gpu-texture-atlas\\Shaders\\Bc7\\Bc7StreamValidation.compute"
+  }
+]

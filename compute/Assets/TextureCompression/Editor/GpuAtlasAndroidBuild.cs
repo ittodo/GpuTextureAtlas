@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,7 +23,7 @@ namespace UnityCompute.TextureCompression.Editor
         {
             const string inputs = "Assets/__GpuAtlasAndroidInputs", temp = "Assets/TextureCompression/AndroidVerificationTemp";
             if (AssetDatabase.IsValidFolder(inputs)) throw new InvalidOperationException("Temporary Android input folder already exists.");
-            var type = typeof(GpuTextureAtlas).Assembly.GetType("UnityCompute.TextureCompression.Verification.GpuAtlasAndroidProbe");
+            var type = AppDomain.CurrentDomain.GetAssemblies().Select(a => a.GetType("UnityCompute.TextureCompression.Verification.GpuAtlasAndroidProbe")).FirstOrDefault(t => t != null);
             if (type == null) throw new InvalidOperationException("Install the temporary Android verification sources first.");
             string output = Path.GetFullPath(Path.Combine(Application.dataPath, "../../.validation/gpu-atlas/android")); Directory.CreateDirectory(output);
             var target = NamedBuildTarget.Android;
@@ -61,8 +62,8 @@ namespace UnityCompute.TextureCompression.Editor
                 Directory.CreateDirectory("Assets/StreamingAssets"); File.Copy(Path.Combine(bundleDirectory, bundle.assetBundleName), bundlePath); AssetDatabase.Refresh();
                 var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
                 var component = new GameObject("Android atlas verification").AddComponent(type); var serialized = new SerializedObject(component);
-                serialized.FindProperty("encoderShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/Astc/Shaders/AstcEncoder.compute");
-                serialized.FindProperty("conversionShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Assets/TextureCompression/Shaders/GpuAtlasConvert.compute");
+                serialized.FindProperty("encoderShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute");
+                serialized.FindProperty("conversionShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>("Packages/com.ittodo.gpu-texture-atlas/Shaders/Atlas/GpuAtlasConvert.compute");
                 serialized.FindProperty("readShader").objectReferenceValue = AssetDatabase.LoadAssetAtPath<ComputeShader>(temp + "/GpuAtlasValidation.compute");
                 serialized.ApplyModifiedPropertiesWithoutUndo(); string scenePath = temp + "/Probe.unity"; EditorSceneManager.SaveScene(scene, scenePath);
                 var result = BuildPipeline.BuildPlayer(new BuildPlayerOptions { scenes = new[] { scenePath }, locationPathName = Path.Combine(output, "GpuAtlasVerification.apk"),

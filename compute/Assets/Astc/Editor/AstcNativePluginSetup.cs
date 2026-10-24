@@ -6,8 +6,8 @@ namespace UnityCompute.Astc.Editor
     {
         public static string Configure()
         {
-            ConfigureOne("Assets/Astc/Plugins/Android/arm64-v8a/libAstcGpuUpload.so", BuildTarget.Android);
-            ConfigureOne("Assets/Astc/Plugins/iOS/AstcGpuUploadMetal.mm", BuildTarget.iOS);
+            ConfigureOne("Packages/com.ittodo.gpu-texture-atlas/Plugins/Astc/Android/arm64-v8a/libAstcGpuUpload.so", BuildTarget.Android);
+            ConfigureOne("Packages/com.ittodo.gpu-texture-atlas/Plugins/Astc/iOS/AstcGpuUploadMetal.mm", BuildTarget.iOS);
             return "Configured Android ARM64 and iOS native plug-in importers. Device execution remains untested.";
         }
         static void ConfigureOne(string path, BuildTarget target)

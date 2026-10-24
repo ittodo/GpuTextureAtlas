@@ -1,0 +1,443 @@
+{
+  "verifiedAt": "2026-10-24T03:59:23.346Z",
+  "workload": {
+    "passed": true,
+    "incremental": true,
+    "resurrectionConfirmed": true,
+    "transientExpected": 10000,
+    "retainedExpected": 2000,
+    "finalizableExpected": 100,
+    "finalized": 100,
+    "resurrectedFinalized": 1,
+    "sampleViews": 4,
+    "gcBefore": 9,
+    "gcAfter": 39,
+    "unity": "6000.7.0b5",
+    "device": "samsung SM-A426N",
+    "gpu": "Adreno (TM) 619",
+    "error": ""
+  },
+  "backend": "IL2CPP",
+  "platform": "Android ARM64 / Vulkan",
+  "physicalFreeCountAvailable": false,
+  "allocated": 75453,
+  "weakCleared": 59444,
+  "remainingTracked": 16009,
+  "types": 344,
+  "gcReclaimPhases": 31,
+  "fullGcEndEvents": 10,
+  "packageFilesUnchanged": 42,
+  "sampleSourceUnchanged": true,
+  "apkSha256": "ED5F14FD8A50F67B94A5568D59BEB57325EB9F16FC81677A6CEE5165B7E07372",
+  "nativeSourceSha256": "B0C17B8499827AE7ED54B74C1A48391457888B1A4BECEBEFA88A1975F1ED1E61",
+  "nativeLibrarySha256": "1B918B4C101504713A6C220ED5E0D1346BC339C366A70289B8874C41F662C32C",
+  "calibration": [
+    {
+      "type": "CalTransient",
+      "hasFinalizer": false,
+      "allocated": 10000,
+      "weakCleared": 10000,
+      "remainingTracked": 0,
+      "allocatedBytes": 240000,
+      "weakClearedBytes": 240000
+    },
+    {
+      "type": "CalRetained",
+      "hasFinalizer": false,
+      "allocated": 2000,
+      "weakCleared": 0,
+      "remainingTracked": 2000,
+      "allocatedBytes": 48000,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "CalFinalizable",
+      "hasFinalizer": true,
+      "allocated": 100,
+      "weakCleared": 100,
+      "remainingTracked": 0,
+      "allocatedBytes": 1600,
+      "weakClearedBytes": 1600
+    },
+    {
+      "type": "CalResurrecting",
+      "hasFinalizer": true,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 16,
+      "weakClearedBytes": 16
+    }
+  ],
+  "selectedTypes": [
+    {
+      "type": "UnityEngine.GameObject",
+      "hasFinalizer": false,
+      "allocated": 12,
+      "weakCleared": 9,
+      "remainingTracked": 3,
+      "allocatedBytes": 288,
+      "weakClearedBytes": 216
+    },
+    {
+      "type": "GpuTextureAtlasSamples.DynamicAtlasDemo",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 144,
+      "weakClearedBytes": 144
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasFrameBudget",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 64,
+      "weakClearedBytes": 64
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderer[]",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 3,
+      "remainingTracked": 1,
+      "allocatedBytes": 224,
+      "weakClearedBytes": 192
+    },
+    {
+      "type": "UnityEngine.Texture2D",
+      "hasFinalizer": false,
+      "allocated": 210,
+      "weakCleared": 12,
+      "remainingTracked": 198,
+      "allocatedBytes": 5040,
+      "weakClearedBytes": 288
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.InputBatch",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 112,
+      "weakClearedBytes": 112
+    },
+    {
+      "type": "UnityCompute.TextureCompression.BlockAtlasLayout.Item[]",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 80,
+      "weakClearedBytes": 80
+    },
+    {
+      "type": "UnityCompute.TextureCompression.BlockAtlasLayout.<>c",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 16,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.BlockAtlasLayout",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 40,
+      "weakClearedBytes": 40
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 152,
+      "weakClearedBytes": 152
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.FrameWork",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 40,
+      "weakClearedBytes": 40
+    },
+    {
+      "type": "UnityCompute.TextureCompression.CompressedAtlasEntry[]",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 64,
+      "weakClearedBytes": 64
+    },
+    {
+      "type": "UnityCompute.TextureCompression.CompressedAtlasEntry",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 384,
+      "weakClearedBytes": 384
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.Conversion",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 160,
+      "weakClearedBytes": 160
+    },
+    {
+      "type": "UnityCompute.Astc.AstcGpuTexture",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 448,
+      "weakClearedBytes": 448
+    },
+    {
+      "type": "UnityCompute.Astc.AstcEncoder",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 320,
+      "weakClearedBytes": 320
+    },
+    {
+      "type": "UnityCompute.Astc.AstcImage",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 160,
+      "weakClearedBytes": 160
+    },
+    {
+      "type": "UnityCompute.Astc.AstcGpuTexture.UploadPacket",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 224,
+      "weakClearedBytes": 224
+    },
+    {
+      "type": "UnityCompute.TextureCompression.FrameSlicedGpuJob",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 416,
+      "weakClearedBytes": 416
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.FrameWork.<NextFrame>d__6",
+      "hasFinalizer": false,
+      "allocated": 10,
+      "weakCleared": 10,
+      "remainingTracked": 0,
+      "allocatedBytes": 640,
+      "weakClearedBytes": 640
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.<NormalizeAsync>d__17",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 448,
+      "weakClearedBytes": 448
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.<SubmitPackAsync>d__93",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 224,
+      "weakClearedBytes": 224
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.<PackTexturesAsync>d__96",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 160,
+      "weakClearedBytes": 160
+    },
+    {
+      "type": "GpuTextureAtlasSamples.DynamicAtlasDemo.<Initialize>d__19",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 64,
+      "weakClearedBytes": 64
+    },
+    {
+      "type": "GpuTextureAtlasSamples.DynamicAtlasDemo.<Run>d__18",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 72,
+      "weakClearedBytes": 72
+    },
+    {
+      "type": "UnityEngine.Material",
+      "hasFinalizer": false,
+      "allocated": 199,
+      "weakCleared": 1,
+      "remainingTracked": 198,
+      "allocatedBytes": 4776,
+      "weakClearedBytes": 24
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.<WaitForCompletionAsync>d__95",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 64,
+      "weakClearedBytes": 64
+    },
+    {
+      "type": "UnityCompute.Astc.AstcGpuRetirement",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 40,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "UnityCompute.Astc.AstcGpuRetirement.Pending[]",
+      "hasFinalizer": false,
+      "allocated": 2,
+      "weakCleared": 0,
+      "remainingTracked": 2,
+      "allocatedBytes": 160,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "GpuTextureAtlasSamples.DynamicAtlasDemo.<>c__DisplayClass20_0",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 96,
+      "weakClearedBytes": 96
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderer",
+      "hasFinalizer": false,
+      "allocated": 4,
+      "weakCleared": 4,
+      "remainingTracked": 0,
+      "allocatedBytes": 832,
+      "weakClearedBytes": 832
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState[]",
+      "hasFinalizer": false,
+      "allocated": 2,
+      "weakCleared": 0,
+      "remainingTracked": 2,
+      "allocatedBytes": 96,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 88,
+      "weakClearedBytes": 88
+    },
+    {
+      "type": "UnityEngine.Mesh",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 24,
+      "weakClearedBytes": 24
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState.<>c__DisplayClass31_0",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 24,
+      "weakClearedBytes": 24
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState.Record[]",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 416,
+      "weakClearedBytes": 416
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState.<>c",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 16,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRenderState.<>c__DisplayClass33_0",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 40,
+      "weakClearedBytes": 40
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRetirement.Pending[]",
+      "hasFinalizer": false,
+      "allocated": 2,
+      "weakCleared": 0,
+      "remainingTracked": 2,
+      "allocatedBytes": 160,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuAtlasRetirement",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 0,
+      "remainingTracked": 1,
+      "allocatedBytes": 32,
+      "weakClearedBytes": 0
+    },
+    {
+      "type": "UnityCompute.TextureCompression.GpuTextureAtlas.<>c__DisplayClass101_0",
+      "hasFinalizer": false,
+      "allocated": 1,
+      "weakCleared": 1,
+      "remainingTracked": 0,
+      "allocatedBytes": 32,
+      "weakClearedBytes": 32
+    }
+  ]
+}

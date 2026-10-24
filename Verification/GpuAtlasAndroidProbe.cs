@@ -16,7 +16,7 @@ namespace UnityCompute.TextureCompression.Verification
         public ComputeShader encoderShader, conversionShader, readShader;
         [Serializable] sealed class Report
         {
-            public bool passed, copyPassed, conversionPassed, rendererPassed;
+            public bool passed, copyPassed, conversionPassed, rendererPassed, schedulingPassed;
             public string unity, device, os, gpu, backend, graphicsVersion, utc, error, phase;
             public int frames, convertedCases, convertedPixels;
             public double elapsedSeconds;
@@ -47,6 +47,8 @@ namespace UnityCompute.TextureCompression.Verification
                 Require(SystemInfo.graphicsDeviceType == GraphicsDeviceType.Vulkan, "This test requires Vulkan.");
                 await Phase("ASTC CopyTexture", () => GpuAtlasCopyValidation.Run(readShader, Path.Combine(output, "copytexture"), Progress), () => report.copyPassed = true);
                 await Phase("ASTC GPU conversion", Conversion, () => report.conversionPassed = true);
+                await Phase("ASTC frame budgets / cancellation", () => GpuAtlasSchedulingValidation.Run(TextureFormat.ASTC_4x4,
+                    encoderShader, conversionShader, readShader, Path.Combine(output, "scheduling")), () => report.schedulingPassed = true);
                 string bundlePath = Path.Combine(Application.persistentDataPath, "android-atlas-inputs");
                 using (var request = UnityWebRequest.Get(Application.streamingAssetsPath + "/android-atlas-inputs"))
                 {
@@ -57,7 +59,7 @@ namespace UnityCompute.TextureCompression.Verification
                 await Phase("ASTC bundle / 9-slice / SpriteMask", async () =>
                     { await GpuAtlasRendererValidation.Run(bundlePath, encoderShader, conversionShader, readShader, Path.Combine(output, "renderer"), TextureFormat.ASTC_4x4); },
                     () => report.rendererPassed = true);
-                report.passed = report.copyPassed && report.conversionPassed && report.rendererPassed;
+                report.passed = report.copyPassed && report.conversionPassed && report.rendererPassed && report.schedulingPassed;
             }
             catch (Exception error) { report.error += error; Debug.LogException(error); }
             finally

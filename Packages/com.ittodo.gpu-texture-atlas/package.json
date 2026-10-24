@@ -1,0 +1,12 @@
+{
+  "name": "com.ittodo.gpu-texture-atlas",
+  "version": "0.1.0",
+  "displayName": "GpuTextureAtlas",
+  "description": "GPU ASTC and BC7 encoding, compressed texture atlases, frame budgets and dynamic atlas rendering.",
+  "unity": "6000.7",
+  "unityRelease": "0b5",
+  "author": { "name": "ittodo", "url": "https://github.com/ittodo" },
+  "license": "MIT",
+  "documentationUrl": "https://github.com/ittodo/GpuTextureAtlas#readme",
+  "samples": [{ "displayName": "Dynamic Atlas", "description": "Pack, add, remove, repack, cancel and render with a shared frame budget.", "path": "Samples~/DynamicAtlas" }]
+}

@@ -7,7 +7,7 @@ namespace UnityCompute.Bc7.Editor
     {
         public static string Configure()
         {
-            const string path="Assets/Bc7/Plugins/Windows/x86_64/Bc7GpuUpload.dll";
+            const string path="Packages/com.ittodo.gpu-texture-atlas/Plugins/Bc7/Windows/x86_64/Bc7GpuUpload.dll";
             AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);
             var importer=AssetImporter.GetAtPath(path) as PluginImporter;
             if(importer==null)throw new InvalidOperationException("Build the BC7 Windows plug-in first.");

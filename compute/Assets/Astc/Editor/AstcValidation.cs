@@ -14,7 +14,7 @@ namespace UnityCompute.Astc.Editor
     // Verification only. This code is excluded from player builds and from the encoding path.
     public static class AstcValidation
     {
-        const string ShaderPath = "Assets/Astc/Shaders/AstcEncoder.compute";
+        const string ShaderPath = "Packages/com.ittodo.gpu-texture-atlas/Shaders/Astc/AstcEncoder.compute";
         static string Root => Path.GetFullPath(Path.Combine(Application.dataPath, "../../.validation"));
         public static string AsyncStatus { get; private set; } = "not run";
         static AstcQuality activeQuality;
@@ -23,8 +23,8 @@ namespace UnityCompute.Astc.Editor
         {
             // Compile a disposable asset. This internal API can leave the compiled asset
             // in a foreign-platform state in Unity 6000.6.6f1.
-            const string probePath = "Assets/Astc/Shaders/AstcCompileProbe.compute";
-            File.Copy(ShaderPath, probePath, true);
+            const string probePath = "Assets/Astc/Editor/AstcCompileProbe.compute";
+            UnityCompute.TextureCompression.Editor.GpuAtlasProjectPaths.CopyShaderProbe(ShaderPath, probePath);
             AssetDatabase.ImportAsset(probePath, ImportAssetOptions.ForceUpdate | ImportAssetOptions.ForceSynchronousImport);
             var shader = AssetDatabase.LoadAssetAtPath<ComputeShader>(probePath);
             try
